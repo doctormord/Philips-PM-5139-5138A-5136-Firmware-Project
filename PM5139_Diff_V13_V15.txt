@@ -1,0 +1,4190 @@
+
+===== replace  V1.3 002B..002B (1 Instr.)  <->  V1.5 002B..002B (1 Instr.) =====
+  - 002B: MOV   R7,30h
+  + 002B: AJMP  X0430h
+
+===== delete  V1.3 002D..002E (2 Instr.)  <->  V1.5 002F..002F (0 Instr.) =====
+  - 002D: INC   @R1
+  - 002E: JBC   24h.0,X00A8h
+
+===== delete  V1.3 0031..0031 (1 Instr.)  <->  V1.5 0032..0032 (0 Instr.) =====
+  - 0031: MOVX  A,@R1
+
+===== replace  V1.3 008B..008B (1 Instr.)  <->  V1.5 008B..008D (2 Instr.) =====
+  - 008B: JNZ   X00F8h
+  + 008B: JZ    X0090h
+  + 008D: LJMP  X0103h
+
+===== replace  V1.3 008F..0092 (2 Instr.)  <->  V1.5 0092..00A4 (8 Instr.) =====
+  - 008F: JNB   2Eh.2,X00D1h
+  - 0092: JBC   28h.7,X00ECh
+  + 0092: JNB   2Eh.1,X00A1h
+  + 0095: LCALL XB1FCh
+  + 0098: JNC   X0103h
+  + 009A: CLR   2Eh.1
+  + 009C: LCALL X5108h
+  + 009F: SJMP  X00E9h
+  + 00A1: JNB   2Eh.2,X00DCh
+  + 00A4: JBC   28h.7,X00F7h
+
+===== replace  V1.3 00A3..00AA (6 Instr.)  <->  V1.5 00B5..00B5 (1 Instr.) =====
+  - 00A3: POP   ACC
+  - 00A5: ANL   A,#0Fh
+  - 00A7: ANL   67h,#0F0h
+  - 00A8: XRL   A,@R1
+  - 00A9: MOVX  @DPTR,A
+  - 00AA: ORL   67h,A
+  + 00B5: POP   67h
+
+===== replace  V1.3 00FC..00FC (1 Instr.)  <->  V1.5 0107..0107 (1 Instr.) =====
+  - 00FC: JNC   X0118h
+  + 0107: JNC   X0126h
+
+===== replace  V1.3 0105..0107 (2 Instr.)  <->  V1.5 0110..0116 (4 Instr.) =====
+  - 0105: SJMP  X0118h
+  - 0107: JB    21h.3,X0112h
+  + 0110: SJMP  X0126h
+  + 0112: MOV   C,21h.3
+  + 0114: ORL   C,2Eh.1
+  + 0116: JC    X0120h
+
+===== delete  V1.3 01FC..031D (142 Instr.)  <->  V1.5 020A..020A (0 Instr.) =====
+  - 01FC: CLR   EA
+  - 01FE: MOV   SP,#6Bh
+  - 0201: ACALL X0227h
+  - 0203: JZ    X020Ch
+  - 0205: MOV   09h,#50h
+  - 0208: CLR   27h.4
+  - 020A: AJMP  X028Dh
+  - 020C: MOV   C,2Ch.7
+  - 020E: ANL   C,2Fh.4
+  - 0210: JNC   X0225h
+  - 0212: MOV   TH0,#00h
+  - 0215: CLR   TF0
+  - 0217: JNB   P3.3,X0201h
+  - 021A: JNB   TF0,X0217h
+  - 021D: CLR   TF0
+  - 021F: JNB   P3.3,X0201h
+  - 0222: JNB   TF0,X021Fh
+  - 0225: AJMP  X0006h
+  - 0227: CLR   A
+  - 0228: MOV   R5,A
+  - 0229: MOV   R6,A
+  - 022A: MOV   TH0,#0D7h
+  - 022D: MOV   TL0,#46h
+  - 0230: CLR   TF0
+  - 0232: JNB   P3.3,X0232h
+  - 0235: JB    TF0,X025Ah
+  - 0238: JB    P3.3,X0235h
+  - 023B: MOV   A,TH0
+  - 023D: CJNE  R6,#0Bh,X024Ah
+  - 0240: ADD   A,#10h
+  - 0242: MOV   A,R5
+  - 0243: RLC   A
+  - 0244: RLC   A
+  - 0245: RLC   A
+  - 0246: RR    A
+  - 0247: RR    A
+  - 0248: MOV   R5,A
+  - 0249: RET
+  - 024A: ADD   A,#10h
+  - 024C: MOV   A,R5
+  - 024D: RLC   A
+  - 024E: MOV   R5,A
+  - 024F: INC   R6
+  - 0250: CJNE  R6,#05h,X022Ah
+  - 0253: MOV   A,R5
+  - 0254: RR    A
+  - 0255: RR    A
+  - 0256: RR    A
+  - 0257: MOV   R5,A
+  - 0258: SJMP  X022Ah
+  - 025A: CJNE  R6,#0Bh,X025Eh
+  - 025D: RET
+  - 025E: CLR   A
+  - 025F: RET
+  - 0260: JNB   23h.4,X026Bh
+  - 0263: JB    23h.6,X026Dh
+  - 0266: SETB  23h.6
+  - 0268: MOV   0Dh,#03h
+  - 026B: AJMP  X0006h
+  - 026D: DJNZ  0Dh,X0283h
+  - 0270: MOV   0Dh,#04h
+  - 0273: MOV   A,0Ah
+  - 0275: ANL   A,#3Fh
+  - 0277: MOV   DPTR,#0329h
+  - 027A: MOVC  A,@A+DPTR
+  - 027B: MOV   23h,A
+  - 027D: SETB  23h.6
+  - 027F: ACALL X03F5h
+  - 0281: SJMP  X02B3h
+  - 0283: MOV   A,0Dh
+  - 0285: CJNE  A,#02h,X026Bh
+  - 0288: MOV   09h,#4Dh
+  - 028B: SJMP  X026Bh
+  - 028D: MOV   A,0Ah
+  - 028F: XRL   A,R5
+  - 0290: JZ    X0260h
+  - 0292: MOV   A,R5
+  - 0293: JZ    X030Dh
+  - 0295: ANL   A,#3Fh
+  - 0297: ADD   A,#0D0h
+  - 0299: JC    X030Dh
+  - 029B: MOV   A,R5
+  - 029C: MOV   0Ah,A
+  - 029E: ANL   A,#3Fh
+  - 02A0: MOV   DPTR,#0329h
+  - 02A3: MOVC  A,@A+DPTR
+  - 02A4: MOV   23h,A
+  - 02A6: JB    20h.7,X02EFh
+  - 02A9: MOV   C,ACC.4
+  - 02AB: ANL   C,/21h.3
+  - 02AD: ANL   C,/21h.1
+  - 02AF: JNC   X02B3h
+  - 02B1: ACALL X03F5h
+  - 02B3: MOV   A,23h
+  - 02B5: ANL   A,#0Fh
+  - 02B7: MOV   R3,A
+  - 02B8: JNB   21h.3,X02D3h
+  - 02BB: CJNE  R3,#0Ah,X02C0h
+  - 02BE: SJMP  X02EFh
+  - 02C0: PUSH  67h
+  - 02C2: MOV   67h,#00h
+  - 02C5: LCALL X2C55h
+  - 02C8: POP   ACC
+  - 02CA: ANL   A,#0Fh
+  - 02CC: ANL   67h,#0F0h
+  - 02CF: ORL   67h,A
+  - 02D1: SJMP  X02DBh
+  - 02D3: JNB   21h.1,X02EDh
+  - 02D6: CJNE  R3,#09h,X02DBh
+  - 02D9: SJMP  X02EFh
+  - 02DB: CLR   2Eh.0
+  - 02DD: CLR   21h.3
+  - 02DF: CLR   21h.1
+  - 02E1: LCALL X4EF7h
+  - 02E4: MOV   A,23h
+  - 02E6: JNB   ACC.4,X02EDh
+  - 02E9: CLR   22h.1
+  - 02EB: ACALL X03F5h
+  - 02ED: CLR   21h.6
+  - 02EF: MOV   A,23h
+  - 02F1: ANL   23h,#0F0h
+  - 02F4: ANL   A,#0Fh
+  - 02F6: JNB   20h.7,X02FCh
+  - 02F9: CJNE  A,#0Bh,X030Dh
+  - 02FC: RL    A
+  - 02FD: MOV   DPTR,#0301h
+  - 0300: JMP   @A+DPTR
+  - 0301: AJMP  X0006h
+  - 0303: AJMP  X0502h
+  - 0305: AJMP  X0504h
+  - 0307: AJMP  X0553h
+  - 0309: AJMP  X059Fh
+  - 030B: AJMP  X05ACh
+  - 030D: AJMP  X0006h
+  - 030F: AJMP  X06BAh
+  - 0311: AJMP  X0663h
+  - 0313: AJMP  X05F7h
+  - 0315: AJMP  X0626h
+  - 0317: AJMP  X0748h
+  - 0319: AJMP  X06C0h
+  - 031B: AJMP  X06FEh
+  - 031D: AJMP  X04E7h
+
+===== replace  V1.3 03EB..03EB (1 Instr.)  <->  V1.5 029C..029C (1 Instr.) =====
+  - 03EB: ANL   67h,#0F0h
+  + 029C: MOV   67h,#00h
+
+===== replace  V1.3 0408..0408 (1 Instr.)  <->  V1.5 02B9..02B9 (1 Instr.) =====
+  - 0408: AJMP  X0460h
+  + 02B9: AJMP  X030Eh
+
+===== replace  V1.3 0416..0416 (1 Instr.)  <->  V1.5 02C7..02C7 (1 Instr.) =====
+  - 0416: JZ    X0460h
+  + 02C7: JZ    X030Eh
+
+===== replace  V1.3 0423..0429 (4 Instr.)  <->  V1.5 02D4..02DA (4 Instr.) =====
+  - 0423: SJMP  X043Eh
+  - 0425: SJMP  X0444h
+  - 0427: SJMP  X044Ch
+  - 0429: SJMP  X0452h
+  + 02D4: SJMP  X02ECh
+  + 02D6: SJMP  X02F2h
+  + 02D8: SJMP  X02FAh
+  + 02DA: SJMP  X0300h
+
+===== replace  V1.3 0434..043A (4 Instr.)  <->  V1.5 02E5..02E7 (2 Instr.) =====
+  - 0434: SJMP  X0456h
+  - 0436: MOV   A,4Ch
+  - 0438: ANL   A,#07h
+  - 043A: ORL   A,#10h
+  + 02E5: SJMP  X0304h
+  + 02E7: LCALL X0480h
+
+===== replace  V1.3 043E..043E (1 Instr.)  <->  V1.5 02EC..02EC (1 Instr.) =====
+  - 043E: ACALL X04B1h
+  + 02EC: ACALL X0601h
+
+===== replace  V1.3 0452..0452 (1 Instr.)  <->  V1.5 0300..0300 (1 Instr.) =====
+  - 0452: ACALL X04CFh
+  + 0300: ACALL X061Fh
+
+===== insert  V1.3 04B1..04B1 (0 Instr.)  <->  V1.5 035F..05FF (311 Instr.) =====
+  + 035F: MOV   A,@R0
+  + 0360: MOV   @R1,A
+  + 0361: INC   R0
+  + 0362: INC   R1
+  + 0363: DJNZ  R3,X035Fh
+  + 0365: RET
+  + 0366: LCALL X3283h
+  + 0369: LCALL X045Eh
+  + 036C: MOV   R3,#03h
+  + 036E: MOV   A,24h
+  + 0370: JB    ACC.7,X03CCh
+  + 0373: ANL   A,#0Fh
+  + 0375: MOV   R5,A
+  + 0376: ADD   A,#0FDh
+  + 0378: JNC   X037Bh
+  + 037A: DEC   R3
+  + 037B: MOV   A,#05h
+  + 037D: CLR   C
+  + 037E: SUBB  A,R3
+  + 037F: ADD   A,R4
+  + 0380: MOV   R1,A
+  + 0381: MOV   A,@R0
+  + 0382: SWAP  A
+  + 0383: ANL   A,#0Fh
+  + 0385: MOV   R2,A
+  + 0386: MOV   A,@R0
+  + 0387: CJNE  R5,#09h,X038Ch
+  + 038A: SJMP  X038Eh
+  + 038C: ANL   A,#0Fh
+  + 038E: LCALL X0360h
+  + 0391: MOV   A,R5
+  + 0392: CLR   C
+  + 0393: SUBB  A,#03h
+  + 0395: JC    X03E7h
+  + 0397: CJNE  R5,#04h,X039Ch
+  + 039A: SJMP  X039Fh
+  + 039C: CJNE  R5,#0Ah,X03A6h
+  + 039F: MOV   A,R2
+  + 03A0: MOV   C,ACC.3
+  + 03A2: MOV   21h.2,C
+  + 03A4: SJMP  X03C7h
+  + 03A6: MOV   A,R4
+  + 03A7: ADD   A,#03h
+  + 03A9: MOV   R0,A
+  + 03AA: CJNE  R5,#05h,X03BEh
+  + 03AD: CJNE  R2,#09h,X03CBh
+  + 03B0: MOV   A,5Bh
+  + 03B2: JNZ   X03CBh
+  + 03B4: MOV   A,5Ah
+  + 03B6: ANL   A,#0Fh
+  + 03B8: JNZ   X03CBh
+  + 03BA: MOV   @R0,#10h
+  + 03BC: SJMP  X03CBh
+  + 03BE: CJNE  R5,#08h,X03CBh
+  + 03C1: MOV   A,R2
+  + 03C2: JNB   ACC.3,X03CBh
+  + 03C5: MOV   @R0,#10h
+  + 03C7: MOV   A,R2
+  + 03C8: ANL   A,#07h
+  + 03CA: MOV   R2,A
+  + 03CB: RET
+  + 03CC: ANL   A,#0Fh
+  + 03CE: MOV   R3,A
+  + 03CF: MOV   A,R4
+  + 03D0: ADD   A,#03h
+  + 03D2: MOV   R1,A
+  + 03D3: MOV   A,@R0
+  + 03D4: MOV   B,#64h
+  + 03D7: DIV   AB
+  + 03D8: MOV   @R1,A
+  + 03D9: INC   R1
+  + 03DA: MOV   A,B
+  + 03DC: MOV   B,#0Ah
+  + 03DF: DIV   AB
+  + 03E0: SWAP  A
+  + 03E1: ORL   A,B
+  + 03E3: MOV   @R1,A
+  + 03E4: MOV   R2,#00h
+  + 03E6: RET
+  + 03E7: ACALL X0443h
+  + 03E9: RET
+  + 03EA: LCALL X045Eh
+  + 03ED: MOV   R3,#01h
+  + 03EF: MOV   A,24h
+  + 03F1: JB    ACC.7,X040Dh
+  + 03F4: INC   R3
+  + 03F5: ANL   A,#0Fh
+  + 03F7: ADD   A,#0FDh
+  + 03F9: JC    X03FCh
+  + 03FB: INC   R3
+  + 03FC: MOV   A,#1Ah
+  + 03FE: CLR   C
+  + 03FF: SUBB  A,R3
+  + 0400: MOV   R1,A
+  + 0401: SETB  C
+  + 0402: MOV   A,@R1
+  + 0403: XCH   A,@R0
+  + 0404: XRL   A,@R1
+  + 0405: JZ    X0408h
+  + 0407: CLR   C
+  + 0408: INC   R0
+  + 0409: INC   R1
+  + 040A: DJNZ  R3,X0402h
+  + 040C: RET
+  + 040D: ANL   A,#0Fh
+  + 040F: CJNE  A,#0Dh,X0418h
+  + 0412: MOV   A,19h
+  + 0414: MOV   67h,A
+  + 0416: SETB  C
+  + 0417: RET
+  + 0418: MOV   A,19h
+  + 041A: ANL   A,#0Fh
+  + 041C: XCH   A,19h
+  + 041E: ANL   A,#0F0h
+  + 0420: SWAP  A
+  + 0421: MOV   B,#0Ah
+  + 0424: MUL   AB
+  + 0425: ADD   A,19h
+  + 0427: MOV   19h,A
+  + 0429: MOV   A,18h
+  + 042B: JZ    X0435h
+  + 042D: MOV   B,#64h
+  + 0430: MUL   AB
+  + 0431: ADD   A,19h
+  + 0433: MOV   19h,A
+  + 0435: MOV   A,24h
+  + 0437: ANL   A,#0Fh
+  + 0439: CJNE  A,#0Fh,X03FCh
+  + 043C: MOV   5Eh,19h
+  + 043F: CLR   20h.1
+  + 0441: CLR   C
+  + 0442: RET
+  + 0443: MOV   A,R2
+  + 0444: MOV   C,24h.0
+  + 0446: JC    X044Ah
+  + 0448: ADD   A,#09h
+  + 044A: MOVC  A,@A+PC
+  + 044B: RET
+  + 045E: MOV   A,24h
+  + 0460: ANL   A,#0Fh
+  + 0462: INC   A
+  + 0463: MOVC  A,@A+PC
+  + 0464: SJMP  X0475h
+  + 0475: MOV   R0,A
+  + 0476: CLR   A
+  + 0477: JB    24h.7,X047Eh
+  + 047A: MOV   A,@R0
+  + 047B: ANL   A,#0F0h
+  + 047D: SWAP  A
+  + 047E: MOV   R2,A
+  + 047F: RET
+  + 0480: MOV   A,4Ch
+  + 0482: ANL   A,#0Fh
+  + 0484: MOV   R3,A
+  + 0485: JZ    X048Bh
+  + 0487: ADD   A,#0FBh
+  + 0489: JNC   X048Dh
+  + 048B: MOV   R3,#01h
+  + 048D: MOV   A,#10h
+  + 048F: ORL   A,R3
+  + 0490: MOV   4Ch,A
+  + 0492: RET
+  + 0493: CLR   EA
+  + 0495: MOV   SP,#6Bh
+  + 0498: ACALL X04BEh
+  + 049A: JZ    X04A3h
+  + 049C: MOV   09h,#50h
+  + 049F: CLR   27h.4
+  + 04A1: AJMP  X04F7h
+  + 04A3: MOV   C,2Ch.7
+  + 04A5: ANL   C,2Fh.4
+  + 04A7: JNC   X04BCh
+  + 04A9: MOV   TH0,#00h
+  + 04AC: CLR   TF0
+  + 04AE: JNB   P3.3,X0498h
+  + 04B1: JNB   TF0,X04AEh
+  + 04B4: CLR   TF0
+  + 04B6: JNB   P3.3,X0498h
+  + 04B9: JNB   TF0,X04B6h
+  + 04BC: AJMP  X0006h
+  + 04BE: CLR   A
+  + 04BF: MOV   R5,A
+  + 04C0: MOV   R6,A
+  + 04C1: MOV   TH0,#0D7h
+  + 04C4: MOV   TL0,#46h
+  + 04C7: CLR   TF0
+  + 04C9: JNB   P3.3,X04C9h
+  + 04CC: JB    TF0,X04F1h
+  + 04CF: JB    P3.3,X04CCh
+  + 04D2: MOV   A,TH0
+  + 04D4: CJNE  R6,#0Bh,X04E1h
+  + 04D7: ADD   A,#10h
+  + 04D9: MOV   A,R5
+  + 04DA: RLC   A
+  + 04DB: RLC   A
+  + 04DC: RLC   A
+  + 04DD: RR    A
+  + 04DE: RR    A
+  + 04DF: MOV   R5,A
+  + 04E0: RET
+  + 04E1: ADD   A,#10h
+  + 04E3: MOV   A,R5
+  + 04E4: RLC   A
+  + 04E5: MOV   R5,A
+  + 04E6: INC   R6
+  + 04E7: CJNE  R6,#05h,X04C1h
+  + 04EA: MOV   A,R5
+  + 04EB: RR    A
+  + 04EC: RR    A
+  + 04ED: RR    A
+  + 04EE: MOV   R5,A
+  + 04EF: SJMP  X04C1h
+  + 04F1: CJNE  R6,#0Bh,X04F5h
+  + 04F4: RET
+  + 04F5: CLR   A
+  + 04F6: RET
+  + 04F7: MOV   A,0Ah
+  + 04F9: XRL   A,R5
+  + 04FA: JNZ   X04FEh
+  + 04FC: AJMP  X05D4h
+  + 04FE: MOV   A,R5
+  + 04FF: JZ    X057Ch
+  + 0501: ANL   A,#3Fh
+  + 0503: ADD   A,#0D0h
+  + 0505: JC    X057Ch
+  + 0507: MOV   A,R5
+  + 0508: MOV   0Ah,A
+  + 050A: ANL   A,#3Fh
+  + 050C: MOV   DPTR,#05A4h
+  + 050F: MOVC  A,@A+DPTR
+  + 0510: MOV   23h,A
+  + 0512: JB    20h.7,X055Eh
+  + 0515: MOV   C,ACC.4
+  + 0517: ANL   C,/21h.3
+  + 0519: ANL   C,/21h.1
+  + 051B: JNC   X051Fh
+  + 051D: ACALL X02A6h
+  + 051F: MOV   A,23h
+  + 0521: ANL   A,#0Fh
+  + 0523: MOV   R3,A
+  + 0524: JNB   21h.3,X0538h
+  + 0527: CJNE  R3,#0Ah,X052Ch
+  + 052A: SJMP  X055Eh
+  + 052C: PUSH  67h
+  + 052E: MOV   67h,#00h
+  + 0531: LCALL X2D11h
+  + 0534: POP   67h
+  + 0536: SJMP  X0540h
+  + 0538: JNB   21h.1,X0552h
+  + 053B: CJNE  R3,#09h,X0540h
+  + 053E: SJMP  X055Eh
+  + 0540: CLR   2Eh.0
+  + 0542: CLR   21h.3
+  + 0544: CLR   21h.1
+  + 0546: LCALL X4FE5h
+  + 0549: MOV   A,23h
+  + 054B: JNB   ACC.4,X0552h
+  + 054E: CLR   22h.1
+  + 0550: ACALL X02A6h
+  + 0552: CLR   21h.6
+  + 0554: MOV   A,23h
+  + 0556: ANL   A,#0Fh
+  + 0558: XRL   A,#0Eh
+  + 055A: JZ    X055Eh
+  + 055C: CLR   2Eh.1
+  + 055E: MOV   A,23h
+  + 0560: ANL   23h,#0F0h
+  + 0563: ANL   A,#0Fh
+  + 0565: JNB   20h.7,X056Bh
+  + 0568: CJNE  A,#0Bh,X057Ch
+  + 056B: RL    A
+  + 056C: MOV   DPTR,#0570h
+  + 056F: JMP   @A+DPTR
+  + 0570: AJMP  X0006h
+  + 0572: AJMP  X066Bh
+  + 0574: AJMP  X066Dh
+  + 0576: AJMP  X06BCh
+  + 0578: AJMP  X0708h
+  + 057A: AJMP  X0715h
+  + 057C: AJMP  X0006h
+  + 057E: SJMP  X0598h
+  + 0580: AJMP  X07CAh
+  + 0582: AJMP  X075Eh
+  + 0584: AJMP  X078Dh
+  + 0586: SJMP  X059Bh
+  + 0588: SJMP  X059Eh
+  + 058A: SJMP  X05A1h
+  + 058C: AJMP  X0637h
+  + 0598: LJMP  X0823h
+  + 059B: LJMP  X08B8h
+  + 059E: LJMP  X082Dh
+  + 05A1: LJMP  X086Dh
+  + 05D4: JNB   23h.4,X05DFh
+  + 05D7: JB    23h.6,X05E1h
+  + 05DA: SETB  23h.6
+  + 05DC: MOV   0Dh,#03h
+  + 05DF: AJMP  X0006h
+  + 05E1: DJNZ  0Dh,X05F7h
+  + 05E4: MOV   0Dh,#04h
+  + 05E7: MOV   A,0Ah
+  + 05E9: ANL   A,#3Fh
+  + 05EB: MOV   DPTR,#05A4h
+  + 05EE: MOVC  A,@A+DPTR
+  + 05EF: MOV   23h,A
+  + 05F1: SETB  23h.6
+  + 05F3: ACALL X02A6h
+  + 05F5: AJMP  X051Fh
+  + 05F7: MOV   A,0Dh
+  + 05F9: CJNE  A,#02h,X05DFh
+  + 05FC: MOV   09h,#4Dh
+  + 05FF: SJMP  X05DFh
+
+===== delete  V1.3 04EE..04F1 (2 Instr.)  <->  V1.5 063E..063E (0 Instr.) =====
+  - 04EE: MOV   0Bh,#4Ah
+  - 04F1: SETB  2Eh.1
+
+===== insert  V1.3 04F7..04F7 (0 Instr.)  <->  V1.5 0642..0642 (1 Instr.) =====
+  + 0642: MOV   0Bh,#4Ah
+
+===== insert  V1.3 04FA..04FA (0 Instr.)  <->  V1.5 0648..064D (3 Instr.) =====
+  + 0648: MOV   A,0Ch
+  + 064A: JB    ACC.0,X0657h
+  + 064D: SETB  2Eh.1
+
+===== insert  V1.3 0502..0502 (0 Instr.)  <->  V1.5 0657..0668 (7 Instr.) =====
+  + 0657: LCALL XAF3Bh
+  + 065A: JNB   2Eh.1,X0662h
+  + 065D: LCALL XB0BAh
+  + 0660: AJMP  X0006h
+  + 0662: LCALL X5108h
+  + 0665: LCALL X3420h
+  + 0668: LJMP  X0975h
+
+===== replace  V1.3 0590..0590 (1 Instr.)  <->  V1.5 06F9..06F9 (1 Instr.) =====
+  - 0590: JBC   22h.3,X0595h
+  + 06F9: JB    22h.3,X06FEh
+
+===== replace  V1.3 069B..069B (1 Instr.)  <->  V1.5 0802..0802 (1 Instr.) =====
+  - 069B: AJMP  X0359h
+  + 0802: LJMP  X020Ah
+
+===== replace  V1.3 06BE..06BE (1 Instr.)  <->  V1.5 0827..082B (3 Instr.) =====
+  - 06BE: SJMP  X06F0h
+  + 0827: CLR   22h.1
+  + 0829: CLR   28h.6
+  + 082B: SJMP  X085Eh
+
+===== replace  V1.3 06C5..06C8 (2 Instr.)  <->  V1.5 0832..0835 (2 Instr.) =====
+  - 06C5: JNB   2Ch.0,X06CAh
+  - 06C8: AJMP  X03DEh
+  + 0832: JNB   2Ch.0,X0838h
+  + 0835: LJMP  X028Fh
+
+===== replace  V1.3 06FC..06FC (1 Instr.)  <->  V1.5 086A..086A (1 Instr.) =====
+  - 06FC: AJMP  X0006h
+  + 086A: LJMP  X0006h
+
+===== replace  V1.3 0724..0726 (2 Instr.)  <->  V1.5 0893..0895 (2 Instr.) =====
+  - 0724: SJMP  X073Ah
+  - 0726: JZ    X073Eh
+  + 0893: SJMP  X08AAh
+  + 0895: JZ    X08AEh
+
+===== replace  V1.3 0733..0733 (1 Instr.)  <->  V1.5 08A2..08A2 (1 Instr.) =====
+  - 0733: SJMP  X073Ah
+  + 08A2: SJMP  X08AAh
+
+===== replace  V1.3 0738..0738 (1 Instr.)  <->  V1.5 08A7..08A7 (1 Instr.) =====
+  - 0738: AJMP  X03D5h
+  + 08A7: LJMP  X0286h
+
+===== replace  V1.3 073C..073C (1 Instr.)  <->  V1.5 08AC..08AC (1 Instr.) =====
+  - 073C: SJMP  X06F0h
+  + 08AC: SJMP  X085Eh
+
+===== replace  V1.3 0746..0746 (1 Instr.)  <->  V1.5 08B6..08B6 (1 Instr.) =====
+  - 0746: SJMP  X0738h
+  + 08B6: SJMP  X08A7h
+
+===== replace  V1.3 075B..075B (1 Instr.)  <->  V1.5 08CB..08CB (1 Instr.) =====
+  - 075B: JC    X0766h
+  + 08CB: JC    X08D7h
+
+===== replace  V1.3 0764..0766 (2 Instr.)  <->  V1.5 08D4..08D7 (2 Instr.) =====
+  - 0764: AJMP  X06F0h
+  - 0766: JB    2Eh.2,X0764h
+  + 08D4: LJMP  X085Eh
+  + 08D7: JB    2Eh.2,X08D4h
+
+===== replace  V1.3 076E..0771 (2 Instr.)  <->  V1.5 08DF..08E2 (2 Instr.) =====
+  - 076E: JB    2Ch.7,X0764h
+  - 0771: JNB   20h.7,X0764h
+  + 08DF: JB    2Ch.7,X08D4h
+  + 08E2: JNB   20h.7,X08D4h
+
+===== replace  V1.3 07F9..07F9 (1 Instr.)  <->  V1.5 096A..096A (1 Instr.) =====
+  - 07F9: LJMP  X090Ch
+  + 096A: LJMP  X0975h
+
+===== delete  V1.3 0804..090B (138 Instr.)  <->  V1.5 0975..0975 (0 Instr.) =====
+  - 0804: MOV   A,@R0
+  - 0805: MOV   @R1,A
+  - 0806: INC   R0
+  - 0807: INC   R1
+  - 0808: DJNZ  R3,X0804h
+  - 080A: RET
+  - 080B: LCALL X31E4h
+  - 080E: LCALL X08EAh
+  - 0811: MOV   R3,#03h
+  - 0813: MOV   A,24h
+  - 0815: JB    ACC.7,X0871h
+  - 0818: ANL   A,#0Fh
+  - 081A: MOV   R5,A
+  - 081B: ADD   A,#0FDh
+  - 081D: JNC   X0820h
+  - 081F: DEC   R3
+  - 0820: MOV   A,#05h
+  - 0822: CLR   C
+  - 0823: SUBB  A,R3
+  - 0824: ADD   A,R4
+  - 0825: MOV   R1,A
+  - 0826: MOV   A,@R0
+  - 0827: SWAP  A
+  - 0828: ANL   A,#0Fh
+  - 082A: MOV   R2,A
+  - 082B: MOV   A,@R0
+  - 082C: CJNE  R5,#09h,X0831h
+  - 082F: SJMP  X0833h
+  - 0831: ANL   A,#0Fh
+  - 0833: LCALL X0805h
+  - 0836: MOV   A,R5
+  - 0837: CLR   C
+  - 0838: SUBB  A,#03h
+  - 083A: JC    X0888h
+  - 083C: CJNE  R5,#04h,X0841h
+  - 083F: SJMP  X0844h
+  - 0841: CJNE  R5,#0Ah,X084Bh
+  - 0844: MOV   A,R2
+  - 0845: MOV   C,ACC.3
+  - 0847: MOV   21h.2,C
+  - 0849: SJMP  X086Ch
+  - 084B: MOV   A,R4
+  - 084C: ADD   A,#03h
+  - 084E: MOV   R0,A
+  - 084F: CJNE  R5,#05h,X0863h
+  - 0852: CJNE  R2,#09h,X0870h
+  - 0855: MOV   A,5Bh
+  - 0857: JNZ   X0870h
+  - 0859: MOV   A,5Ah
+  - 085B: ANL   A,#0Fh
+  - 085D: JNZ   X0870h
+  - 085F: MOV   @R0,#10h
+  - 0861: SJMP  X0870h
+  - 0863: CJNE  R5,#08h,X0870h
+  - 0866: MOV   A,R2
+  - 0867: JNB   ACC.3,X0870h
+  - 086A: MOV   @R0,#10h
+  - 086C: MOV   A,R2
+  - 086D: ANL   A,#07h
+  - 086F: MOV   R2,A
+  - 0870: RET
+  - 0871: ANL   A,#0Fh
+  - 0873: MOV   R3,A
+  - 0874: MOV   A,R4
+  - 0875: ADD   A,#04h
+  - 0877: MOV   R1,A
+  - 0878: MOV   A,@R0
+  - 0879: CJNE  R3,#0Dh,X087Eh
+  - 087C: SJMP  X0882h
+  - 087E: CJNE  R3,#0Fh,X0884h
+  - 0881: SWAP  A
+  - 0882: ANL   A,#0Fh
+  - 0884: MOV   @R1,A
+  - 0885: MOV   R2,#00h
+  - 0887: RET
+  - 0888: ACALL X08CFh
+  - 088A: RET
+  - 088B: LCALL X08EAh
+  - 088E: MOV   R3,#01h
+  - 0890: MOV   A,24h
+  - 0892: JB    ACC.7,X08AEh
+  - 0895: INC   R3
+  - 0896: ANL   A,#0Fh
+  - 0898: ADD   A,#0FDh
+  - 089A: JC    X089Dh
+  - 089C: INC   R3
+  - 089D: MOV   A,#1Ah
+  - 089F: CLR   C
+  - 08A0: SUBB  A,R3
+  - 08A1: MOV   R1,A
+  - 08A2: SETB  C
+  - 08A3: MOV   A,@R1
+  - 08A4: XCH   A,@R0
+  - 08A5: XRL   A,@R1
+  - 08A6: JZ    X08A9h
+  - 08A8: CLR   C
+  - 08A9: INC   R0
+  - 08AA: INC   R1
+  - 08AB: DJNZ  R3,X08A3h
+  - 08AD: RET
+  - 08AE: ANL   A,#0Fh
+  - 08B0: CJNE  A,#0Fh,X08C2h
+  - 08B3: MOV   A,67h
+  - 08B5: ANL   A,#0Fh
+  - 08B7: MOV   R3,A
+  - 08B8: MOV   A,19h
+  - 08BA: SWAP  A
+  - 08BB: ORL   A,R3
+  - 08BC: MOV   67h,A
+  - 08BE: CLR   20h.1
+  - 08C0: CLR   C
+  - 08C1: RET
+  - 08C2: CJNE  A,#0Dh,X089Dh
+  - 08C5: MOV   A,67h
+  - 08C7: ANL   A,#0F0h
+  - 08C9: ORL   A,19h
+  - 08CB: MOV   67h,A
+  - 08CD: SETB  C
+  - 08CE: RET
+  - 08CF: MOV   A,R2
+  - 08D0: MOV   C,24h.0
+  - 08D2: JC    X08D6h
+  - 08D4: ADD   A,#09h
+  - 08D6: MOVC  A,@A+PC
+  - 08D7: RET
+  - 08EA: MOV   A,24h
+  - 08EC: ANL   A,#0Fh
+  - 08EE: INC   A
+  - 08EF: MOVC  A,@A+PC
+  - 08F0: SJMP  X0901h
+  - 0901: MOV   R0,A
+  - 0902: CLR   A
+  - 0903: JB    24h.7,X090Ah
+  - 0906: MOV   A,@R0
+  - 0907: ANL   A,#0F0h
+  - 0909: SWAP  A
+  - 090A: MOV   R2,A
+  - 090B: RET
+
+===== insert  V1.3 0AAC..0AAC (0 Instr.)  <->  V1.5 0B15..0BB9 (70 Instr.) =====
+  + 0B15: LCALL X0BBAh
+  + 0B18: MOV   1Eh,A
+  + 0B1A: CLR   C
+  + 0B1B: LCALL X0BE4h
+  + 0B1E: MOV   1Ch,A
+  + 0B20: LCALL X300Ch
+  + 0B23: CLR   22h.5
+  + 0B25: MOV   A,10h
+  + 0B27: MOV   1Bh,A
+  + 0B29: XRL   A,1Eh
+  + 0B2B: JZ    X0B9Eh
+  + 0B2D: MOV   R3,A
+  + 0B2E: JNB   ACC.5,X0B36h
+  + 0B31: JNB   2Bh.7,X0B36h
+  + 0B34: SETB  22h.5
+  + 0B36: ANL   A,#18h
+  + 0B38: JNZ   X0B3Fh
+  + 0B3A: MOV   A,R3
+  + 0B3B: SETB  22h.4
+  + 0B3D: SJMP  X0B7Fh
+  + 0B3F: SETB  22h.4
+  + 0B41: MOV   A,1Eh
+  + 0B43: ANL   A,R3
+  + 0B44: ANL   A,#18h
+  + 0B46: JZ    X0B50h
+  + 0B48: CLR   22h.4
+  + 0B4A: MOV   14h,1Ch
+  + 0B4D: LCALL X0EE9h
+  + 0B50: MOV   A,1Bh
+  + 0B52: ANL   A,#3Fh
+  + 0B54: MOV   14h,A
+  + 0B56: MOV   13h,#64h
+  + 0B59: LCALL X0EE2h
+  + 0B5C: LCALL X0C15h
+  + 0B5F: MOV   A,1Bh
+  + 0B61: JB    22h.4,X0B6Bh
+  + 0B64: ANL   A,#18h
+  + 0B66: MOV   R3,A
+  + 0B67: MOV   A,#27h
+  + 0B69: SJMP  X0B6Fh
+  + 0B6B: MOV   R3,#00h
+  + 0B6D: MOV   A,#3Fh
+  + 0B6F: ANL   A,1Eh
+  + 0B71: ORL   A,R3
+  + 0B72: MOV   14h,A
+  + 0B74: MOV   13h,#64h
+  + 0B77: LCALL X0EE2h
+  + 0B7A: MOV   R3,#02h
+  + 0B7C: LCALL X0C17h
+  + 0B7F: MOV   14h,1Eh
+  + 0B82: MOV   13h,#64h
+  + 0B85: LCALL X0EE2h
+  + 0B88: MOV   R3,#04h
+  + 0B8A: LCALL X0C17h
+  + 0B8D: MOV   13h,1Dh
+  + 0B90: LCALL X0EE2h
+  + 0B93: LCALL X0C15h
+  + 0B96: LCALL X3018h
+  + 0B99: JBC   22h.4,X0BA7h
+  + 0B9C: SJMP  X0BADh
+  + 0B9E: MOV   14h,1Eh
+  + 0BA1: MOV   13h,1Dh
+  + 0BA4: LCALL X0EE2h
+  + 0BA7: MOV   14h,1Ch
+  + 0BAA: LCALL X0EE9h
+  + 0BAD: JNB   22h.5,X0BB9h
+  + 0BB0: MOV   13h,1Dh
+  + 0BB3: MOV   14h,1Eh
+  + 0BB6: LCALL X0EE2h
+  + 0BB9: RET
+
+===== replace  V1.3 0ABA..0ABA (1 Instr.)  <->  V1.5 0BC8..0BC8 (1 Instr.) =====
+  - 0ABA: MOV   1Eh,A
+  + 0BC8: MOV   R3,A
+
+===== replace  V1.3 0AC2..0AC4 (2 Instr.)  <->  V1.5 0BCF..0BCF (1 Instr.) =====
+  - 0AC2: JZ    X0AD3h
+  - 0AC4: JB    2Eh.5,X0AD3h
+  + 0BCF: JZ    X0BDEh
+
+===== insert  V1.3 0AC8..0AC8 (0 Instr.)  <->  V1.5 0BD2..0BD2 (1 Instr.) =====
+  + 0BD2: JB    2Eh.5,X0BDEh
+
+===== replace  V1.3 0AD1..0B40 (50 Instr.)  <->  V1.5 0BDE..0BDE (1 Instr.) =====
+  - 0AD1: ORL   1Eh,A
+  - 0AD3: CLR   C
+  - 0AD4: LCALL X0B57h
+  - 0AD7: MOV   1Ch,A
+  - 0AD9: LCALL X2F6Eh
+  - 0ADC: MOV   A,10h
+  - 0ADE: MOV   R3,A
+  - 0ADF: XRL   A,1Eh
+  - 0AE1: JZ    X0B44h
+  - 0AE3: MOV   R3,A
+  - 0AE4: ANL   A,#18h
+  - 0AE6: JNZ   X0AF0h
+  - 0AE8: MOV   A,R3
+  - 0AE9: JNB   ACC.7,X0B44h
+  - 0AEC: SETB  22h.4
+  - 0AEE: SJMP  X0B26h
+  - 0AF0: SETB  22h.4
+  - 0AF2: MOV   A,1Eh
+  - 0AF4: ANL   A,R3
+  - 0AF5: ANL   A,#18h
+  - 0AF7: JZ    X0B01h
+  - 0AF9: CLR   22h.4
+  - 0AFB: MOV   14h,1Ch
+  - 0AFE: LCALL X0E62h
+  - 0B01: MOV   13h,#64h
+  - 0B04: MOV   14h,1Eh
+  - 0B07: ANL   14h,#27h
+  - 0B0A: MOV   A,R3
+  - 0B0B: SWAP  A
+  - 0B0C: MOV   DPTR,#0B53h
+  - 0B0F: MOVC  A,@A+DPTR
+  - 0B10: ORL   14h,A
+  - 0B12: LCALL X0E5Bh
+  - 0B15: LCALL X0B88h
+  - 0B18: MOV   A,1Eh
+  - 0B1A: ANL   A,#3Fh
+  - 0B1C: MOV   14h,A
+  - 0B1E: LCALL X0E5Bh
+  - 0B21: MOV   R3,#02h
+  - 0B23: LCALL X0B8Ah
+  - 0B26: MOV   14h,1Eh
+  - 0B29: MOV   13h,#64h
+  - 0B2C: LCALL X0E5Bh
+  - 0B2F: MOV   R3,#04h
+  - 0B31: LCALL X0B8Ah
+  - 0B34: MOV   13h,1Dh
+  - 0B37: LCALL X0E5Bh
+  - 0B3A: LCALL X0B88h
+  - 0B3D: LCALL X2F7Ah
+  - 0B40: JBC   22h.4,X0B4Dh
+  + 0BDE: ORL   A,R3
+
+===== delete  V1.3 0B44..0B50 (5 Instr.)  <->  V1.5 0BE4..0BE4 (0 Instr.) =====
+  - 0B44: MOV   14h,1Eh
+  - 0B47: MOV   13h,1Dh
+  - 0B4A: LCALL X0E5Bh
+  - 0B4D: MOV   14h,1Ch
+  - 0B50: LJMP  X0E62h
+
+===== replace  V1.3 0BBB..0BBB (1 Instr.)  <->  V1.5 0C48..0C48 (1 Instr.) =====
+  - 0BBB: LCALL X0C0Bh
+  + 0C48: LCALL X0C92h
+
+===== replace  V1.3 0BD5..0BD5 (1 Instr.)  <->  V1.5 0C62..0C62 (1 Instr.) =====
+  - 0BD5: JNC   X0BF5h
+  + 0C62: JNC   X0C7Ch
+
+===== replace  V1.3 0BE3..0BE5 (2 Instr.)  <->  V1.5 0C70..0C74 (3 Instr.) =====
+  - 0BE3: JNC   X0BF5h
+  - 0BE5: MOV   R0,#5Ch
+  + 0C70: JNC   X0C7Ch
+  + 0C72: MOV   A,5Ch
+  + 0C74: RL    A
+
+===== replace  V1.3 0BEA..0BF2 (4 Instr.)  <->  V1.5 0C78..0C78 (1 Instr.) =====
+  - 0BEA: MOV   R0,#5Eh
+  - 0BEC: LCALL X0F45h
+  - 0BEF: JNB   2Ch.1,X0BF3h
+  - 0BF2: RL    A
+  + 0C78: MOV   A,5Dh
+
+===== replace  V1.3 0D5F..0D5F (1 Instr.)  <->  V1.5 0DE6..0DE9 (2 Instr.) =====
+  - 0D5F: JB    29h.3,X0D65h
+  + 0DE6: JB    29h.3,X0DEFh
+  + 0DE9: LCALL X1133h
+
+===== insert  V1.3 0D81..0D81 (0 Instr.)  <->  V1.5 0E0B..0E0E (2 Instr.) =====
+  + 0E0B: JNB   23h.2,X0E11h
+  + 0E0E: LCALL X1133h
+
+===== replace  V1.3 0DEE..0DEE (1 Instr.)  <->  V1.5 0E7E..0E7E (1 Instr.) =====
+  - 0DEE: CJNE  R3,#50h,X0DF6h
+  + 0E7E: CJNE  R3,#32h,X0E86h
+
+===== replace  V1.3 0E21..0E21 (1 Instr.)  <->  V1.5 0EB1..0EB1 (1 Instr.) =====
+  - 0E21: JNC   X0E3Fh
+  + 0EB1: JNC   X0ECCh
+
+===== replace  V1.3 0E26..0E2A (3 Instr.)  <->  V1.5 0EB6..0EB8 (2 Instr.) =====
+  - 0E26: SJMP  X0E3Bh
+  - 0E28: MOV   R0,#66h
+  - 0E2A: LCALL X0F65h
+  + 0EB6: SJMP  X0EC8h
+  + 0EB8: MOV   A,66h
+
+===== replace  V1.3 0E4A..0E50 (3 Instr.)  <->  V1.5 0ED7..0ED7 (1 Instr.) =====
+  - 0E4A: LCALL X0E78h
+  - 0E4D: JNB   23h.2,X0E53h
+  - 0E50: LJMP  X10B5h
+  + 0ED7: LCALL X0EFFh
+
+===== delete  V1.3 0EA1..0EA8 (4 Instr.)  <->  V1.5 0F28..0F28 (0 Instr.) =====
+  - 0EA1: MOV   A,68h
+  - 0EA3: CLR   25h.0
+  - 0EA5: CJNE  A,#31h,X0EAAh
+  - 0EA8: SETB  25h.0
+
+===== delete  V1.3 0F65..0F67 (2 Instr.)  <->  V1.5 0FE7..0FE7 (0 Instr.) =====
+  - 0F65: MOV   R4,#00h
+  - 0F67: SJMP  X0F4Ah
+
+===== replace  V1.3 1102..1104 (2 Instr.)  <->  V1.5 1180..1180 (1 Instr.) =====
+  - 1102: MOV   R0,#5Ch
+  - 1104: LCALL X0F45h
+  + 1180: MOV   A,5Ch
+
+===== replace  V1.3 11CC..11CC (1 Instr.)  <->  V1.5 1247..1262 (15 Instr.) =====
+  - 11CC: JB    23h.6,X1240h
+  + 1247: JNB   23h.6,X1263h
+  + 124A: MOV   A,19h
+  + 124C: ANL   A,#0Fh
+  + 124E: SETB  C
+  + 124F: JNZ   X1262h
+  + 1251: CLR   F0
+  + 1253: LCALL X331Bh
+  + 1256: MOV   A,24h
+  + 1258: ANL   A,#0Fh
+  + 125A: CJNE  A,#08h,X1261h
+  + 125D: MOV   A,R2
+  + 125E: ANL   A,#07h
+  + 1260: MOV   R2,A
+  + 1261: CLR   C
+  + 1262: RET
+
+===== replace  V1.3 11DC..11DC (1 Instr.)  <->  V1.5 1270..1270 (1 Instr.) =====
+  - 11DC: JC    X1216h
+  + 1270: JC    X12ACh
+
+===== replace  V1.3 11E0..11E0 (1 Instr.)  <->  V1.5 1274..1274 (1 Instr.) =====
+  - 11E0: CJNE  R3,#04h,X120Ah
+  + 1274: CJNE  R3,#04h,X12A0h
+
+===== replace  V1.3 11ED..11F0 (3 Instr.)  <->  V1.5 1281..1286 (4 Instr.) =====
+  - 11ED: JC    X11F1h
+  - 11EF: INC   R3
+  - 11F0: INC   R3
+  + 1281: JC    X1287h
+  + 1283: MOV   A,R3
+  + 1284: ADD   A,#02h
+  + 1286: MOV   R3,A
+
+===== delete  V1.3 123D..1254 (14 Instr.)  <->  V1.5 12D3..12D3 (0 Instr.) =====
+  - 123D: MOV   R2,A
+  - 123E: CLR   C
+  - 123F: RET
+  - 1240: MOV   A,19h
+  - 1242: ANL   A,#0Fh
+  - 1244: SETB  C
+  - 1245: JNZ   X1258h
+  - 1247: CLR   F0
+  - 1249: LCALL X327Ch
+  - 124C: MOV   A,24h
+  - 124E: ANL   A,#0Fh
+  - 1250: CJNE  A,#08h,X1257h
+  - 1253: MOV   A,R2
+  - 1254: ANL   A,#07h
+
+===== replace  V1.3 1C3E..1C3E (1 Instr.)  <->  V1.5 1CBB..1CBE (2 Instr.) =====
+  - 1C3E: LCALL X1CA2h
+  + 1CBB: MOV   13h,B
+  + 1CBE: LCALL X1D30h
+
+===== replace  V1.3 1C52..1C52 (1 Instr.)  <->  V1.5 1CD2..1CD2 (1 Instr.) =====
+  - 1C52: SJMP  X1C62h
+  + 1CD2: SJMP  X1CEBh
+
+===== replace  V1.3 1C5C..1C5F (2 Instr.)  <->  V1.5 1CDC..1CE8 (7 Instr.) =====
+  - 1C5C: MOV   13h,B
+  - 1C5F: LCALL X1CA2h
+  + 1CDC: MOV   A,B
+  + 1CDE: XCH   A,13h
+  + 1CE0: MOV   B,#64h
+  + 1CE3: MUL   AB
+  + 1CE4: ADD   A,13h
+  + 1CE6: MOV   13h,A
+  + 1CE8: LCALL X1D30h
+
+===== delete  V1.3 1C97..1C9A (2 Instr.)  <->  V1.5 1D20..1D20 (0 Instr.) =====
+  - 1C97: MOV   11h,#60h
+  - 1C9A: JBC   22h.5,X1CBAh
+
+===== insert  V1.3 1CA0..1CA0 (0 Instr.)  <->  V1.5 1D23..1D2C (4 Instr.) =====
+  + 1D23: JNB   22h.5,X1D48h
+  + 1D26: MOV   11h,#41h
+  + 1D29: MOV   12h,#60h
+  + 1D2C: CLR   22h.5
+
+===== replace  V1.3 22F5..22F5 (1 Instr.)  <->  V1.5 2383..2383 (1 Instr.) =====
+  - 22F5: CLR   F0
+  + 2383: MOV   F0,C
+
+===== replace  V1.3 264D..264D (1 Instr.)  <->  V1.5 26DB..26DB (1 Instr.) =====
+  - 264D: SJMP  X265Dh
+  + 26DB: SJMP  X270Ch
+
+===== replace  V1.3 2652..2652 (1 Instr.)  <->  V1.5 26E0..26E0 (1 Instr.) =====
+  - 2652: JNB   2Eh.5,X265Dh
+  + 26E0: JNB   2Eh.5,X270Ch
+
+===== insert  V1.3 265D..265D (0 Instr.)  <->  V1.5 26EB..2709 (13 Instr.) =====
+  + 26EB: CJNE  A,#0Ch,X270Ch
+  + 26EE: MOV   A,68h
+  + 26F0: ANL   A,#0E0h
+  + 26F2: JZ    X270Ch
+  + 26F4: MOV   C,F0
+  + 26F6: LCALL XB01Bh
+  + 26F9: JNC   X2704h
+  + 26FB: LCALL XB0BAh
+  + 26FE: JNB   29h.5,X2704h
+  + 2701: LCALL X0F28h
+  + 2704: MOV   R3,#06h
+  + 2706: LCALL X514Fh
+  + 2709: LJMP  X0006h
+
+===== replace  V1.3 2A32..2A32 (1 Instr.)  <->  V1.5 2AE1..2AE1 (1 Instr.) =====
+  - 2A32: JNC   X2A51h
+  + 2AE1: JNC   X2B0Ah
+
+===== replace  V1.3 2A48..2A4B (2 Instr.)  <->  V1.5 2AF7..2AFA (2 Instr.) =====
+  - 2A48: JNB   ACC.4,X2A55h
+  - 2A4B: JNB   ACC.5,X2A51h
+  + 2AF7: JNB   ACC.4,X2B0Eh
+  + 2AFA: JNB   ACC.5,X2B0Ah
+
+===== insert  V1.3 2A51..2A51 (0 Instr.)  <->  V1.5 2B00..2B08 (5 Instr.) =====
+  + 2B00: MOV   A,4Ch
+  + 2B02: XRL   A,#11h
+  + 2B04: JZ    X2B0Ah
+  + 2B06: DEC   4Ch
+  + 2B08: DEC   0Bh
+
+===== insert  V1.3 2AB3..2AB3 (0 Instr.)  <->  V1.5 2B6C..2B6C (1 Instr.) =====
+  + 2B6C: MOV   1Eh,#00h
+
+===== delete  V1.3 2AB6..2AB6 (1 Instr.)  <->  V1.5 2B72..2B72 (0 Instr.) =====
+  - 2AB6: MOV   1Eh,#00h
+
+===== replace  V1.3 2BC8..2BC8 (1 Instr.)  <->  V1.5 2C81..2C81 (1 Instr.) =====
+  - 2BC8: JNZ   X2BCDh
+  + 2C81: JNZ   X2C87h
+
+===== replace  V1.3 2BCC..2BCC (1 Instr.)  <->  V1.5 2C85..2C85 (1 Instr.) =====
+  - 2BCC: RET
+  + 2C85: SJMP  X2C91h
+
+===== insert  V1.3 2BD7..2BD7 (0 Instr.)  <->  V1.5 2C91..2C95 (3 Instr.) =====
+  + 2C91: MOV   A,19h
+  + 2C93: ADD   A,#0D0h
+  + 2C95: MOV   25h.0,C
+
+===== replace  V1.3 2BFE..2BFE (1 Instr.)  <->  V1.5 2CBE..2CBE (1 Instr.) =====
+  - 2BFE: JB    20h.1,X2C15h
+  + 2CBE: JB    20h.1,X2CD1h
+
+===== replace  V1.3 2C05..2C05 (1 Instr.)  <->  V1.5 2CC5..2CCC (5 Instr.) =====
+  - 2C05: ANL   A,#0Fh
+  + 2CC5: ANL   A,#1Fh
+  + 2CC7: MOV   B,#0Ah
+  + 2CCA: DIV   AB
+  + 2CCB: SWAP  A
+  + 2CCC: ORL   A,B
+
+===== replace  V1.3 2C08..2C13 (7 Instr.)  <->  V1.5 2CCF..2CCF (1 Instr.) =====
+  - 2C08: CLR   C
+  - 2C09: MOV   A,19h
+  - 2C0B: SUBB  A,#10h
+  - 2C0D: JC    X2BEAh
+  - 2C0F: ADD   A,#0Ah
+  - 2C11: MOV   19h,A
+  - 2C13: SJMP  X2BEAh
+  + 2CCF: SJMP  X2CAAh
+
+===== delete  V1.3 2C57..2C57 (1 Instr.)  <->  V1.5 2D13..2D13 (0 Instr.) =====
+  - 2C57: ANL   A,#0Fh
+
+===== replace  V1.3 2C72..2C75 (2 Instr.)  <->  V1.5 2D2C..2D2F (2 Instr.) =====
+  - 2C72: JB    21h.0,X2C86h
+  - 2C75: JZ    X2C92h
+  + 2D2C: JB    21h.0,X2D3Eh
+  + 2D2F: JZ    X2D48h
+
+===== delete  V1.3 2C79..2C79 (1 Instr.)  <->  V1.5 2D33..2D33 (0 Instr.) =====
+  - 2C79: ANL   A,#0Fh
+
+===== replace  V1.3 2C86..2C86 (1 Instr.)  <->  V1.5 2D3E..2D3E (1 Instr.) =====
+  - 2C86: JNZ   X2C8Fh
+  + 2D3E: JNZ   X2D45h
+
+===== delete  V1.3 2C8A..2C8A (1 Instr.)  <->  V1.5 2D42..2D42 (0 Instr.) =====
+  - 2C8A: ANL   A,#0Fh
+
+===== replace  V1.3 2CF8..2CFE (5 Instr.)  <->  V1.5 2DAE..2DAF (2 Instr.) =====
+  - 2CF8: MOV   R3,A
+  - 2CF9: MOV   A,67h
+  - 2CFB: ANL   A,#0Fh
+  - 2CFD: ORL   A,R3
+  - 2CFE: MOV   67h,A
+  + 2DAE: SWAP  A
+  + 2DAF: MOV   5Eh,A
+
+===== insert  V1.3 2D30..2D30 (0 Instr.)  <->  V1.5 2DE1..2DE8 (5 Instr.) =====
+  + 2DE1: MOV   A,34h
+  + 2DE3: RLC   A
+  + 2DE4: MOV   A,5Eh
+  + 2DE6: MOV   ACC.4,C
+  + 2DE8: MOV   5Eh,A
+
+===== replace  V1.3 2D66..2D7A (11 Instr.)  <->  V1.5 2E20..2E23 (2 Instr.) =====
+  - 2D66: MOV   A,40h
+  - 2D68: LCALL X3372h
+  - 2D6B: MOV   5Dh,A
+  - 2D6D: MOV   A,R4
+  - 2D6E: MOV   5Ch,A
+  - 2D70: MOV   A,41h
+  - 2D72: LCALL X3372h
+  - 2D75: MOV   5Fh,A
+  - 2D77: MOV   A,R4
+  - 2D78: SETB  ACC.5
+  - 2D7A: MOV   5Eh,A
+  + 2E20: MOV   5Ch,40h
+  + 2E23: MOV   5Dh,41h
+
+===== replace  V1.3 2D96..2D98 (2 Instr.)  <->  V1.5 2E40..2E40 (1 Instr.) =====
+  - 2D96: MOV   A,47h
+  - 2D98: MOV   66h,A
+  + 2E40: MOV   66h,47h
+
+===== delete  V1.3 2D9C..2D9C (1 Instr.)  <->  V1.5 2E45..2E45 (0 Instr.) =====
+  - 2D9C: ANL   A,#0Fh
+
+===== replace  V1.3 2DEF..2DF1 (2 Instr.)  <->  V1.5 2E96..2E9A (3 Instr.) =====
+  - 2DEF: MOV   A,67h
+  - 2DF1: ANL   A,#0F0h
+  + 2E96: MOV   A,5Eh
+  + 2E98: ANL   A,#0Fh
+  + 2E9A: SWAP  A
+
+===== insert  V1.3 2E1C..2E1C (0 Instr.)  <->  V1.5 2EC4..2ECB (5 Instr.) =====
+  + 2EC4: MOV   A,5Eh
+  + 2EC6: MOV   C,ACC.4
+  + 2EC8: MOV   A,@R0
+  + 2EC9: MOV   ACC.7,C
+  + 2ECB: MOV   @R0,A
+
+===== replace  V1.3 2E49..2E55 (6 Instr.)  <->  V1.5 2EF9..2EFC (2 Instr.) =====
+  - 2E49: MOV   R0,#5Ch
+  - 2E4B: LCALL X335Ah
+  - 2E4E: MOV   40h,A
+  - 2E50: MOV   R0,#5Eh
+  - 2E52: LCALL X335Ah
+  - 2E55: MOV   41h,A
+  + 2EF9: MOV   40h,5Ch
+  + 2EFC: MOV   41h,5Dh
+
+===== delete  V1.3 2E76..2E76 (1 Instr.)  <->  V1.5 2F1E..2F1E (0 Instr.) =====
+  - 2E76: ANL   A,#0Fh
+
+===== replace  V1.3 2E7B..2E7B (1 Instr.)  <->  V1.5 2F21..2F21 (1 Instr.) =====
+  - 2E7B: LCALL X2EA1h
+  + 2F21: LCALL X2F45h
+
+===== delete  V1.3 2E92..2E92 (1 Instr.)  <->  V1.5 2F38..2F38 (0 Instr.) =====
+  - 2E92: ANL   A,#0Fh
+
+===== delete  V1.3 2EA5..2EA5 (1 Instr.)  <->  V1.5 2F49..2F49 (0 Instr.) =====
+  - 2EA5: ANL   A,#0Fh
+
+===== delete  V1.3 2EB5..2EB5 (1 Instr.)  <->  V1.5 2F57..2F57 (0 Instr.) =====
+  - 2EB5: ANL   A,#0Fh
+
+===== replace  V1.3 2EBC..2EBC (1 Instr.)  <->  V1.5 2F5C..2F5C (1 Instr.) =====
+  - 2EBC: LCALL X2E90h
+  + 2F5C: LCALL X2F36h
+
+===== delete  V1.3 2ED1..2ED1 (1 Instr.)  <->  V1.5 2F71..2F71 (0 Instr.) =====
+  - 2ED1: ANL   A,#0Fh
+
+===== replace  V1.3 2EDC..2EDC (1 Instr.)  <->  V1.5 2F7A..2F7A (1 Instr.) =====
+  - 2EDC: LCALL X2E90h
+  + 2F7A: LCALL X2F36h
+
+===== replace  V1.3 2F0E..2F11 (2 Instr.)  <->  V1.5 2FAC..2FAF (2 Instr.) =====
+  - 2F0E: MOV   3Bh,#10h
+  - 2F11: MOV   3Ch,#11h
+  + 2FAC: MOV   3Bh,#21h
+  + 2FAF: MOV   3Ch,#10h
+
+===== replace  V1.3 2F32..2F32 (1 Instr.)  <->  V1.5 2FD0..2FD0 (1 Instr.) =====
+  - 2F32: MOV   47h,#50h
+  + 2FD0: MOV   47h,#32h
+
+===== replace  V1.3 2F66..2F69 (2 Instr.)  <->  V1.5 3004..3007 (2 Instr.) =====
+  - 2F66: CJNE  A,#31h,X2F6Bh
+  - 2F69: MOV   A,#20h
+  + 3004: CJNE  A,#1Fh,X3009h
+  + 3007: MOV   A,#14h
+
+===== replace  V1.3 2F6E..2F6E (1 Instr.)  <->  V1.5 300C..300C (1 Instr.) =====
+  - 2F6E: MOV   R4,#0FDh
+  + 300C: MOV   R4,#0FCh
+
+===== replace  V1.3 2F7F..2F7F (1 Instr.)  <->  V1.5 301D..301D (1 Instr.) =====
+  - 2F7F: MOV   A,#0FDh
+  + 301D: MOV   A,#0FCh
+
+===== replace  V1.3 338C..338C (1 Instr.)  <->  V1.5 342B..342B (1 Instr.) =====
+  - 338C: CJNE  A,#31h,X3392h
+  + 342B: CJNE  A,#1Fh,X3431h
+
+===== replace  V1.3 347C..347C (1 Instr.)  <->  V1.5 351B..351B (1 Instr.) =====
+  - 347C: XRL   A,#50h
+  + 351B: XRL   A,#32h
+
+===== replace  V1.3 348D..348D (1 Instr.)  <->  V1.5 352C..352C (1 Instr.) =====
+  - 348D: JNB   21h.6,X34BFh
+  + 352C: JNB   21h.6,X355Ch
+
+===== replace  V1.3 3492..3492 (1 Instr.)  <->  V1.5 3531..3531 (1 Instr.) =====
+  - 3492: CJNE  A,#2Ch,X34BFh
+  + 3531: CJNE  A,#2Ch,X355Ch
+
+===== insert  V1.3 3497..3497 (0 Instr.)  <->  V1.5 3536..354B (10 Instr.) =====
+  + 3536: MOV   R3,#00h
+  + 3538: JB    20h.1,X354Dh
+  + 353B: MOV   A,5Eh
+  + 353D: MOV   B,#0Ah
+  + 3540: DIV   AB
+  + 3541: JZ    X354Dh
+  + 3543: ORL   43h,#01h
+  + 3546: LCALL X3967h
+  + 3549: MOV   A,B
+  + 354B: SJMP  X3552h
+
+===== delete  V1.3 3499..34B1 (14 Instr.)  <->  V1.5 354F..354F (0 Instr.) =====
+  - 3499: MOV   R3,#00h
+  - 349B: JB    20h.1,X34B3h
+  - 349E: MOV   A,67h
+  - 34A0: ANL   A,#0F0h
+  - 34A2: SWAP  A
+  - 34A3: MOV   R3,A
+  - 34A4: ADD   A,#0F6h
+  - 34A6: JNC   X34B3h
+  - 34A8: MOV   A,#01h
+  - 34AA: LCALL X3894h
+  - 34AD: MOV   A,R3
+  - 34AE: CLR   C
+  - 34AF: SUBB  A,#0Ah
+  - 34B1: SJMP  X34B5h
+
+===== replace  V1.3 34B4..34B4 (1 Instr.)  <->  V1.5 3550..3550 (1 Instr.) =====
+  - 34B4: MOV   A,R3
+  + 3550: MOV   A,5Eh
+
+===== replace  V1.3 3532..3532 (1 Instr.)  <->  V1.5 35CF..35CF (1 Instr.) =====
+  - 3532: JNB   2Eh.1,X354Fh
+  + 35CF: JNB   2Eh.1,X35F8h
+
+===== replace  V1.3 3539..3539 (1 Instr.)  <->  V1.5 35D6..35D6 (1 Instr.) =====
+  - 3539: CJNE  A,#40h,X354Fh
+  + 35D6: CJNE  A,#40h,X35F8h
+
+===== replace  V1.3 353E..3542 (3 Instr.)  <->  V1.5 35DB..35EA (8 Instr.) =====
+  - 353E: XRL   A,#31h
+  - 3540: JZ    X3547h
+  - 3542: MOV   R0,#67h
+  + 35DB: XRL   A,#1Fh
+  + 35DD: JZ    X35F0h
+  + 35DF: MOV   A,68h
+  + 35E1: MOV   B,#0Ah
+  + 35E4: DIV   AB
+  + 35E5: LCALL X3967h
+  + 35E8: MOV   A,B
+  + 35EA: LCALL X3967h
+
+===== replace  V1.3 3563..3563 (1 Instr.)  <->  V1.5 360C..360C (1 Instr.) =====
+  - 3563: JNB   2Dh.7,X3585h
+  + 360C: JNB   2Dh.7,X362Fh
+
+===== replace  V1.3 3580..3580 (1 Instr.)  <->  V1.5 3629..362B (2 Instr.) =====
+  - 3580: MOV   R0,#65h
+  + 3629: MOV   R0,#66h
+  + 362B: CLR   A
+
+===== replace  V1.3 359F..359F (1 Instr.)  <->  V1.5 3649..3649 (1 Instr.) =====
+  - 359F: JB    22h.5,X3574h
+  + 3649: JB    22h.5,X361Dh
+
+===== replace  V1.3 35B0..35B3 (2 Instr.)  <->  V1.5 365A..365D (2 Instr.) =====
+  - 35B0: JNB   2Dh.1,X35BBh
+  - 35B3: JB    22h.5,X3574h
+  + 365A: JNB   2Dh.1,X3666h
+  + 365D: JB    22h.5,X361Dh
+
+===== insert  V1.3 35B8..35B8 (0 Instr.)  <->  V1.5 3662..3662 (1 Instr.) =====
+  + 3662: CLR   A
+
+===== replace  V1.3 35BB..35C1 (3 Instr.)  <->  V1.5 3666..366C (3 Instr.) =====
+  - 35BB: JNB   2Dh.2,X35C7h
+  - 35BE: JB    22h.5,X3574h
+  - 35C1: MOV   R0,#5Eh
+  + 3666: JNB   2Dh.2,X3673h
+  + 3669: JB    22h.5,X361Dh
+  + 366C: MOV   R0,#5Dh
+
+===== replace  V1.3 35C5..35C5 (1 Instr.)  <->  V1.5 3670..3670 (1 Instr.) =====
+  - 35C5: SJMP  X363Eh
+  + 3670: LJMP  X370Bh
+
+===== replace  V1.3 3628..3628 (1 Instr.)  <->  V1.5 36D4..36D4 (1 Instr.) =====
+  - 3628: JNB   2Dh.4,X366Dh
+  + 36D4: JNB   2Dh.4,X3740h
+
+===== replace  V1.3 364C..364C (1 Instr.)  <->  V1.5 36F8..36F8 (1 Instr.) =====
+  - 364C: JNB   22h.4,X365Dh
+  + 36F8: JNB   22h.4,X3730h
+
+===== replace  V1.3 3652..3652 (1 Instr.)  <->  V1.5 36FE..36FE (1 Instr.) =====
+  - 3652: SJMP  X365Dh
+  + 36FE: SJMP  X3730h
+
+===== insert  V1.3 365D..365D (0 Instr.)  <->  V1.5 3709..372D (17 Instr.) =====
+  + 3709: SJMP  X3730h
+  + 370B: JZ    X3712h
+  + 370D: MOV   R1,#39h
+  + 370F: LCALL X3959h
+  + 3712: MOV   R1,#3Bh
+  + 3714: MOV   A,@R0
+  + 3715: MOV   B,#64h
+  + 3718: DIV   AB
+  + 3719: LCALL X3967h
+  + 371C: MOV   A,B
+  + 371E: MOV   B,#0Ah
+  + 3721: DIV   AB
+  + 3722: LCALL X3967h
+  + 3725: MOV   A,B
+  + 3727: LCALL X3967h
+  + 372A: JNB   22h.4,X3730h
+  + 372D: MOV   3Dh,#0EDh
+
+===== replace  V1.3 3988..3988 (1 Instr.)  <->  V1.5 3A5B..3A5B (1 Instr.) =====
+  - 3988: MOV   R7,#0A0h
+  + 3A5B: MOV   R7,#9Fh
+
+===== delete  V1.3 39D1..39DD (9 Instr.)  <->  V1.5 3AA4..3AA4 (0 Instr.) =====
+  - 39D1: MOV   A,67h
+  - 39D3: ANL   A,#0F0h
+  - 39D5: SWAP  A
+  - 39D6: MOV   R3,A
+  - 39D7: CLR   C
+  - 39D8: SUBB  A,#0Ah
+  - 39DA: JC    X39DFh
+  - 39DC: MOV   R3,A
+  - 39DD: MOV   @R1,#0Ch
+
+===== replace  V1.3 39E0..39E0 (1 Instr.)  <->  V1.5 3AA5..3AB1 (7 Instr.) =====
+  - 39E0: MOV   A,R3
+  + 3AA5: MOV   A,5Eh
+  + 3AA7: MOV   B,#0Ah
+  + 3AAA: DIV   AB
+  + 3AAB: JZ    X3AB1h
+  + 3AAD: DEC   R1
+  + 3AAE: LCALL X3967h
+  + 3AB1: MOV   A,B
+
+===== insert  V1.3 39EB..39EB (0 Instr.)  <->  V1.5 3ABD..3ABF (2 Instr.) =====
+  + 3ABD: MOV   A,0Ch
+  + 3ABF: JB    ACC.0,X3ACAh
+
+===== replace  V1.3 3AAB..3AAE (2 Instr.)  <->  V1.5 3B81..3B84 (2 Instr.) =====
+  - 3AAB: MOV   10h,#0ACh
+  - 3AAE: MOV   11h,#6Fh
+  + 3B81: MOV   10h,#0B3h
+  + 3B84: MOV   11h,#0C9h
+
+===== replace  V1.3 3B23..3B26 (2 Instr.)  <->  V1.5 3BF9..3BF9 (1 Instr.) =====
+  - 3B23: ANL   67h,#0F0h
+  - 3B26: ORL   67h,#01h
+  + 3BF9: MOV   67h,#01h
+
+===== replace  V1.3 3B2D..3B2D (1 Instr.)  <->  V1.5 3C00..3C05 (3 Instr.) =====
+  - 3B2D: JNC   X3B46h
+  + 3C00: JNC   X3C1Fh
+  + 3C02: MOV   1Eh,#14h
+  + 3C05: LCALL X3018h
+
+===== insert  V1.3 3B46..3B46 (0 Instr.)  <->  V1.5 3C1F..3C41 (15 Instr.) =====
+  + 3C1F: JNB   25h.7,X3C44h
+  + 3C22: MOV   A,0Ch
+  + 3C24: JNB   ACC.0,X3C32h
+  + 3C27: MOV   A,68h
+  + 3C29: ANL   A,#0E0h
+  + 3C2B: JNZ   X3C44h
+  + 3C2D: MOV   68h,#2Bh
+  + 3C30: SJMP  X3C3Bh
+  + 3C32: MOV   A,68h
+  + 3C34: ANL   A,#0E0h
+  + 3C36: JZ    X3C44h
+  + 3C38: MOV   68h,#14h
+  + 3C3B: MOV   67h,#00h
+  + 3C3E: LCALL X2E68h
+  + 3C41: MOV   67h,#01h
+
+===== replace  V1.3 3BA4..3BA4 (1 Instr.)  <->  V1.5 3CA2..3CAA (4 Instr.) =====
+  - 3BA4: JNB   28h.6,X3BB1h
+  + 3CA2: JNB   28h.6,X3CB7h
+  + 3CA5: MOV   R3,#28h
+  + 3CA7: JNB   P3.2,X3CB1h
+  + 3CAA: JB    P3.3,X3CA5h
+
+===== replace  V1.3 3BA9..3BAF (3 Instr.)  <->  V1.5 3CAF..3CB4 (3 Instr.) =====
+  - 3BA9: JNB   P3.3,X3BB1h
+  - 3BAC: JB    P3.2,X3BA9h
+  - 3BAF: MOV   R3,#28h
+  + 3CAF: SJMP  X3CB7h
+  + 3CB1: LCALL X610Eh
+  + 3CB4: JNB   26h.1,X3CA5h
+
+===== replace  V1.3 3BBE..3BBE (1 Instr.)  <->  V1.5 3CC4..3CC4 (1 Instr.) =====
+  - 3BBE: DJNZ  R3,X3BB5h
+  + 3CC4: DJNZ  R3,X3CB7h
+
+===== insert  V1.3 3C3D..3C3D (0 Instr.)  <->  V1.5 3D43..3D43 (1 Instr.) =====
+  + 3D43: MOV   2Fh,#00h
+
+===== replace  V1.3 3C64..3C6A (3 Instr.)  <->  V1.5 3D6D..3D76 (4 Instr.) =====
+  - 3C64: MOV   66h,#50h
+  - 3C67: MOV   67h,#11h
+  - 3C6A: MOV   68h,#20h
+  + 3D6D: MOV   66h,#32h
+  + 3D70: MOV   67h,#01h
+  + 3D73: MOV   5Eh,#01h
+  + 3D76: MOV   68h,#14h
+
+===== replace  V1.3 3C84..3C84 (1 Instr.)  <->  V1.5 3D90..3D90 (1 Instr.) =====
+  - 3C84: LCALL X3C0Ch
+  + 3D90: LCALL X3D12h
+
+===== delete  V1.3 3C9F..3C9F (1 Instr.)  <->  V1.5 3DAB..3DAB (0 Instr.) =====
+  - 3C9F: CLR   25h.7
+
+===== replace  V1.3 3CE7..3CEA (2 Instr.)  <->  V1.5 3DF1..3DF4 (2 Instr.) =====
+  - 3CE7: JNB   2Bh.4,X3D0Eh
+  - 3CEA: JB    20h.1,X3D0Bh
+  + 3DF1: JNB   2Bh.4,X3E15h
+  + 3DF4: JB    20h.1,X3E12h
+
+===== replace  V1.3 3CF0..3CF0 (1 Instr.)  <->  V1.5 3DFA..3DFA (1 Instr.) =====
+  - 3CF0: JC    X3D0Bh
+  + 3DFA: JC    X3E12h
+
+===== replace  V1.3 3CF6..3CF6 (1 Instr.)  <->  V1.5 3E00..3E00 (1 Instr.) =====
+  - 3CF6: JB    ACC.7,X3D08h
+  + 3E00: JB    ACC.7,X3E0Fh
+
+===== replace  V1.3 3CFD..3CFD (1 Instr.)  <->  V1.5 3E07..3E07 (1 Instr.) =====
+  - 3CFD: ANL   A,#0Fh
+  + 3E07: ANL   A,#1Fh
+
+===== replace  V1.3 3D00..3D04 (3 Instr.)  <->  V1.5 3E0A..3E0A (1 Instr.) =====
+  - 3D00: MOV   A,67h
+  - 3D02: ANL   A,#0F0h
+  - 3D04: SWAP  A
+  + 3E0A: MOV   A,5Eh
+
+===== replace  V1.3 3D14..3D14 (1 Instr.)  <->  V1.5 3E1B..3E1B (1 Instr.) =====
+  - 3D14: SUBB  A,#50h
+  + 3E1B: SUBB  A,#32h
+
+===== replace  V1.3 3F82..3F82 (1 Instr.)  <->  V1.5 4089..4089 (1 Instr.) =====
+  - 3F82: JB    2Eh.6,X3F97h
+  + 4089: JB    2Eh.6,X4091h
+
+===== delete  V1.3 3F87..3F93 (8 Instr.)  <->  V1.5 408E..408E (0 Instr.) =====
+  - 3F87: ANL   A,#0Fh
+  - 3F89: MOV   R3,A
+  - 3F8A: MOV   A,66h
+  - 3F8C: ANL   A,#0F0h
+  - 3F8E: SWAP  A
+  - 3F8F: MOV   B,#0Ah
+  - 3F92: MUL   AB
+  - 3F93: ADD   A,R3
+
+===== replace  V1.3 4003..4003 (1 Instr.)  <->  V1.5 40FD..40FD (1 Instr.) =====
+  - 4003: MOV   DPL,#0A7h
+  + 40FD: MOV   DPL,#95h
+
+===== replace  V1.3 4062..4062 (1 Instr.)  <->  V1.5 415C..415C (1 Instr.) =====
+  - 4062: MOV   A,#44h
+  + 415C: MOV   A,#45h
+
+===== delete  V1.3 4297..42A2 (8 Instr.)  <->  V1.5 4391..4391 (0 Instr.) =====
+  - 4297: MOV   R3,A
+  - 4298: ANL   A,#0Fh
+  - 429A: XCH   A,R3
+  - 429B: ANL   A,#0F0h
+  - 429D: SWAP  A
+  - 429E: MOV   B,#0Ah
+  - 42A1: MUL   AB
+  - 42A2: ADD   A,R3
+
+===== replace  V1.3 5203..5203 (1 Instr.)  <->  V1.5 52F1..52F1 (1 Instr.) =====
+  - 5203: JC    X5211h
+  + 52F1: JC    X5300h
+
+===== replace  V1.3 520F..520F (1 Instr.)  <->  V1.5 52FD..5303 (3 Instr.) =====
+  - 520F: SJMP  X51C1h
+  + 52FD: LJMP  X52AFh
+  + 5300: LCALL X52AFh
+  + 5303: SETB  C
+
+===== replace  V1.3 5217..5217 (1 Instr.)  <->  V1.5 530A..530A (1 Instr.) =====
+  - 5217: JC    X5211h
+  + 530A: JC    X5324h
+
+===== replace  V1.3 521A..521A (1 Instr.)  <->  V1.5 530D..530D (1 Instr.) =====
+  - 521A: LCALL X51A1h
+  + 530D: LCALL X528Fh
+
+===== replace  V1.3 5223..5225 (2 Instr.)  <->  V1.5 5316..5318 (2 Instr.) =====
+  - 5223: JC    X5211h
+  - 5225: LCALL X51D2h
+  + 5316: JC    X5326h
+  + 5318: LCALL X52C0h
+
+===== replace  V1.3 522C..522C (1 Instr.)  <->  V1.5 531F..531F (1 Instr.) =====
+  - 522C: LCALL X51F5h
+  + 531F: LCALL X52E3h
+
+===== insert  V1.3 5230..5230 (0 Instr.)  <->  V1.5 5323..5329 (4 Instr.) =====
+  + 5323: RET
+  + 5324: POP   ACC
+  + 5326: LCALL X52AFh
+  + 5329: SETB  C
+
+===== replace  V1.3 55F1..55F3 (2 Instr.)  <->  V1.5 5744..5746 (2 Instr.) =====
+  - 55F1: ANL   A,#0Fh
+  - 55F3: JNZ   X5608h
+  + 5744: ADD   A,#9Ch
+  + 5746: JC    X575Bh
+
+===== replace  V1.3 5633..5633 (1 Instr.)  <->  V1.5 5786..5786 (1 Instr.) =====
+  - 5633: JC    X567Dh
+  + 5786: JC    X57D3h
+
+===== replace  V1.3 563A..563A (1 Instr.)  <->  V1.5 578D..578D (1 Instr.) =====
+  - 563A: JC    X567Dh
+  + 578D: JC    X57D3h
+
+===== replace  V1.3 5667..5667 (1 Instr.)  <->  V1.5 57BA..57BA (1 Instr.) =====
+  - 5667: JC    X567Dh
+  + 57BA: JC    X57D3h
+
+===== insert  V1.3 567B..567B (0 Instr.)  <->  V1.5 57CE..57CE (1 Instr.) =====
+  + 57CE: LCALL X5AD2h
+
+===== replace  V1.3 5737..5737 (1 Instr.)  <->  V1.5 588D..588D (1 Instr.) =====
+  - 5737: CJNE  A,#50h,X573Ch
+  + 588D: CJNE  A,#32h,X5892h
+
+===== replace  V1.3 574E..574E (1 Instr.)  <->  V1.5 58A4..58A4 (1 Instr.) =====
+  - 574E: MOV   66h,#50h
+  + 58A4: MOV   66h,#32h
+
+===== replace  V1.3 576E..576E (1 Instr.)  <->  V1.5 58C4..58C4 (1 Instr.) =====
+  - 576E: SUBB  A,#20h
+  + 58C4: SUBB  A,#14h
+
+===== replace  V1.3 577C..577C (1 Instr.)  <->  V1.5 58D2..58D2 (1 Instr.) =====
+  - 577C: MOV   66h,#20h
+  + 58D2: MOV   66h,#14h
+
+===== replace  V1.3 5781..5781 (1 Instr.)  <->  V1.5 58D7..58D7 (1 Instr.) =====
+  - 5781: MOV   A,#80h
+  + 58D7: MOV   A,#50h
+
+===== replace  V1.3 5792..5792 (1 Instr.)  <->  V1.5 58E8..58E8 (1 Instr.) =====
+  - 5792: MOV   66h,#80h
+  + 58E8: MOV   66h,#50h
+
+===== replace  V1.3 582E..582E (1 Instr.)  <->  V1.5 5984..5984 (1 Instr.) =====
+  - 582E: XRL   A,#50h
+  + 5984: XRL   A,#32h
+
+===== insert  V1.3 597C..597C (0 Instr.)  <->  V1.5 5AD2..5AFB (25 Instr.) =====
+  + 5AD2: JC    X5AFBh
+  + 5AD4: JNB   2Bh.4,X5AFBh
+  + 5AD7: MOV   A,56h
+  + 5AD9: ANL   A,#0F0h
+  + 5ADB: CJNE  A,#10h,X5AE0h
+  + 5ADE: CLR   C
+  + 5ADF: RET
+  + 5AE0: CLR   C
+  + 5AE1: SUBB  A,#10h
+  + 5AE3: XCH   A,56h
+  + 5AE5: ANL   A,#0Fh
+  + 5AE7: MOV   R3,A
+  + 5AE8: MOV   A,57h
+  + 5AEA: ANL   A,#0F0h
+  + 5AEC: ORL   A,R3
+  + 5AED: SWAP  A
+  + 5AEE: XCH   A,57h
+  + 5AF0: ANL   A,#0Fh
+  + 5AF2: ADD   A,#0FBh
+  + 5AF4: CLR   A
+  + 5AF5: ADDC  A,57h
+  + 5AF7: DA    A
+  + 5AF8: MOV   57h,A
+  + 5AFA: SETB  C
+  + 5AFB: RET
+
+===== replace  V1.3 5982..5991 (10 Instr.)  <->  V1.5 5B02..5B04 (2 Instr.) =====
+  - 5982: MOV   A,5Dh
+  - 5984: JZ    X59B4h
+  - 5986: MOV   R6,A
+  - 5987: SWAP  A
+  - 5988: ANL   A,#0Fh
+  - 598A: MOV   B,#0Ah
+  - 598D: MUL   AB
+  - 598E: XCH   A,R6
+  - 598F: ANL   A,#0Fh
+  - 5991: ADD   A,R6
+  + 5B02: MOV   A,5Ch
+  + 5B04: JZ    X5B28h
+
+===== replace  V1.3 5C1A..5C1A (1 Instr.)  <->  V1.5 5D8E..5D8E (1 Instr.) =====
+  - 5C1A: MOV   68h,#20h
+  + 5D8E: MOV   68h,#14h
+
+===== insert  V1.3 5C30..5C30 (0 Instr.)  <->  V1.5 5DA4..5DAD (5 Instr.) =====
+  + 5DA4: MOV   A,0Ch
+  + 5DA6: MOV   R2,#18h
+  + 5DA8: JNB   ACC.0,X5DB0h
+  + 5DAB: MOV   R2,#19h
+  + 5DAD: MOV   68h,#2Bh
+
+===== insert  V1.3 5C33..5C33 (0 Instr.)  <->  V1.5 5DB3..5DC2 (7 Instr.) =====
+  + 5DB3: MOV   R3,#10h
+  + 5DB5: LCALL X514Fh
+  + 5DB8: MOV   A,0Ch
+  + 5DBA: JNB   ACC.0,X5DC4h
+  + 5DBD: MOV   A,#02h
+  + 5DBF: LCALL XB0BAh
+  + 5DC2: SJMP  X5DC9h
+
+===== insert  V1.3 5C35..5C35 (0 Instr.)  <->  V1.5 5DC6..5DC6 (1 Instr.) =====
+  + 5DC6: LCALL X5F9Ah
+
+===== replace  V1.3 5C76..5C76 (1 Instr.)  <->  V1.5 5E0A..5E0A (1 Instr.) =====
+  - 5C76: LJMP  X5CD4h
+  + 5E0A: LJMP  X5E76h
+
+===== replace  V1.3 5C83..5C83 (1 Instr.)  <->  V1.5 5E17..5E17 (1 Instr.) =====
+  - 5C83: MOV   69h,#7Fh
+  + 5E17: MOV   69h,#0FFh
+
+===== insert  V1.3 5CC7..5CC7 (0 Instr.)  <->  V1.5 5E5B..5E63 (4 Instr.) =====
+  + 5E5B: LCALL X610Eh
+  + 5E5E: MOV   R3,#06h
+  + 5E60: LCALL X514Fh
+  + 5E63: LCALL X526Bh
+
+===== replace  V1.3 5CCA..5CCC (2 Instr.)  <->  V1.5 5E69..5E6B (2 Instr.) =====
+  - 5CCA: SJMP  X5C79h
+  - 5CCC: JB    P3.2,X5CC4h
+  + 5E69: SJMP  X5E0Dh
+  + 5E6B: JB    P3.2,X5E71h
+
+===== replace  V1.3 5CD2..5CD2 (1 Instr.)  <->  V1.5 5E71..5E74 (2 Instr.) =====
+  - 5CD2: SJMP  X5CA8h
+  + 5E71: JNB   P1.2,X5E63h
+  + 5E74: SJMP  X5E3Ch
+
+===== insert  V1.3 5CD7..5CD7 (0 Instr.)  <->  V1.5 5E79..5E7C (2 Instr.) =====
+  + 5E79: MOV   4Bh,#00h
+  + 5E7C: MOV   4Ch,#80h
+
+===== replace  V1.3 5CEE..5CEE (1 Instr.)  <->  V1.5 5E96..5E96 (1 Instr.) =====
+  - 5CEE: SJMP  X5CD4h
+  + 5E96: SJMP  X5E76h
+
+===== replace  V1.3 5CF5..5CF5 (1 Instr.)  <->  V1.5 5E9D..5E9D (1 Instr.) =====
+  - 5CF5: JNB   P3.2,X5CD4h
+  + 5E9D: JNB   P3.2,X5E76h
+
+===== replace  V1.3 5F14..5F14 (1 Instr.)  <->  V1.5 60C6..60C6 (1 Instr.) =====
+  - 5F14: SJMP  X5F74h
+  + 60C6: LJMP  X612Dh
+
+===== replace  V1.3 5F1B..5F1B (1 Instr.)  <->  V1.5 60CE..60CE (1 Instr.) =====
+  - 5F1B: JNB   ACC.7,X5F24h
+  + 60CE: JNB   ACC.7,X60D8h
+
+===== replace  V1.3 5F22..5F22 (1 Instr.)  <->  V1.5 60D5..60D5 (1 Instr.) =====
+  - 5F22: SJMP  X5F2Eh
+  + 60D5: LJMP  X610Eh
+
+===== replace  V1.3 5F25..5F25 (1 Instr.)  <->  V1.5 60D9..60D9 (1 Instr.) =====
+  - 5F25: JB    26h.2,X5F2Ah
+  + 60D9: JB    26h.2,X60E3h
+
+===== insert  V1.3 5F2A..5F2A (0 Instr.)  <->  V1.5 60DE..60E0 (2 Instr.) =====
+  + 60DE: MOV   R5,#0F0h
+  + 60E0: LCALL X6376h
+
+===== delete  V1.3 5F2E..5F4C (12 Instr.)  <->  V1.5 60E7..60E7 (0 Instr.) =====
+  - 5F2E: JNB   25h.7,X5F74h
+  - 5F31: LCALL X6158h
+  - 5F34: JNC   X5FA9h
+  - 5F36: LCALL X51C1h
+  - 5F39: LCALL X614Ah
+  - 5F3C: JNC   X5F7Eh
+  - 5F3E: JNB   26h.0,X5F49h
+  - 5F41: MOV   A,4Eh
+  - 5F43: JNB   ACC.7,X5F49h
+  - 5F46: LCALL X60D5h
+  - 5F49: MOV   26h,#00h
+  - 5F4C: RET
+
+===== insert  V1.3 5F74..5F74 (0 Instr.)  <->  V1.5 610E..610E (1 Instr.) =====
+  + 610E: JNB   25h.7,X612Dh
+
+===== replace  V1.3 5F77..5F79 (2 Instr.)  <->  V1.5 6114..6135 (14 Instr.) =====
+  - 5F77: JNC   X5F7Ch
+  - 5F79: LJMP  X51C1h
+  + 6114: JNC   X6163h
+  + 6116: LCALL X52AFh
+  + 6119: LCALL X631Fh
+  + 611C: JNC   X6138h
+  + 611E: JNB   26h.0,X6129h
+  + 6121: MOV   A,4Eh
+  + 6123: JNB   ACC.7,X6129h
+  + 6126: LCALL X62A2h
+  + 6129: MOV   26h,#00h
+  + 612C: RET
+  + 612D: LCALL X631Fh
+  + 6130: JNC   X6136h
+  + 6132: LCALL X52AFh
+  + 6135: RET
+
+===== replace  V1.3 5FAC..5FAC (1 Instr.)  <->  V1.5 6166..6166 (1 Instr.) =====
+  - 5FAC: JB    ACC.7,X5FC8h
+  + 6166: JB    ACC.7,X6187h
+
+===== replace  V1.3 5FB5..5FB5 (1 Instr.)  <->  V1.5 616F..616F (1 Instr.) =====
+  - 5FB5: JZ    X5FCBh
+  + 616F: JZ    X618Ah
+
+===== insert  V1.3 5FB8..5FB8 (0 Instr.)  <->  V1.5 6172..6173 (2 Instr.) =====
+  + 6172: MOV   A,R5
+  + 6173: MOV   10h,4Ah
+
+===== replace  V1.3 5FC3..5FC6 (2 Instr.)  <->  V1.5 6181..6181 (1 Instr.) =====
+  - 5FC3: CJNE  A,#3Fh,X5FD4h
+  - 5FC6: SJMP  X603Dh
+  + 6181: CJNE  A,#3Fh,X6194h
+
+===== insert  V1.3 5FCB..5FCB (0 Instr.)  <->  V1.5 6187..6187 (1 Instr.) =====
+  + 6187: LJMP  X620Dh
+
+===== replace  V1.3 5FCF..5FD2 (2 Instr.)  <->  V1.5 618E..6191 (2 Instr.) =====
+  - 5FCF: JB    ACC.6,X5FFFh
+  - 5FD2: SJMP  X6043h
+  + 618E: JB    ACC.6,X61C0h
+  + 6191: LJMP  X6209h
+
+===== replace  V1.3 5FD9..5FDB (2 Instr.)  <->  V1.5 6199..6199 (1 Instr.) =====
+  - 5FD9: MOV   A,#3Fh
+  - 5FDB: ANL   4Bh,A
+  + 6199: ANL   4Bh,#3Fh
+
+===== replace  V1.3 5FE8..5FEA (2 Instr.)  <->  V1.5 61A7..61AC (4 Instr.) =====
+  - 5FE8: JZ    X5FEDh
+  - 5FEA: DJNZ  4Ah,X5FF0h
+  + 61A7: JZ    X61AEh
+  + 61A9: DEC   4Ah
+  + 61AB: MOV   A,R3
+  + 61AC: SJMP  X61B1h
+
+===== replace  V1.3 5FF3..5FF3 (1 Instr.)  <->  V1.5 61B4..61B4 (1 Instr.) =====
+  - 5FF3: DJNZ  R6,X6011h
+  + 61B4: DJNZ  R6,X61D5h
+
+===== replace  V1.3 5FFC..5FFC (1 Instr.)  <->  V1.5 61BD..61BD (1 Instr.) =====
+  - 5FFC: JNB   ACC.6,X6022h
+  + 61BD: JNB   ACC.6,X61E6h
+
+===== replace  V1.3 6006..6008 (2 Instr.)  <->  V1.5 61C7..61CC (3 Instr.) =====
+  - 6006: SJMP  X6022h
+  - 6008: MOV   4Ah,#00h
+  + 61C7: SJMP  X61E6h
+  + 61C9: MOV   4Ah,10h
+  + 61CC: LCALL X632Dh
+
+===== replace  V1.3 6011..6011 (1 Instr.)  <->  V1.5 61D5..61D5 (1 Instr.) =====
+  - 6011: CJNE  R1,#0BFh,X5FDFh
+  + 61D5: CJNE  R1,#0BFh,X619Eh
+
+===== delete  V1.3 6025..6025 (1 Instr.)  <->  V1.5 61E9..61E9 (0 Instr.) =====
+  - 6025: MOV   4Ah,#00h
+
+===== insert  V1.3 602D..602D (0 Instr.)  <->  V1.5 61EE..61EF (2 Instr.) =====
+  + 61EE: CLR   C
+  + 61EF: SUBB  A,10h
+
+===== insert  V1.3 6031..6031 (0 Instr.)  <->  V1.5 61F5..61F5 (1 Instr.) =====
+  + 61F5: CLR   25h.4
+
+===== replace  V1.3 604A..604C (2 Instr.)  <->  V1.5 6210..6215 (3 Instr.) =====
+  - 604A: JC    X6062h
+  - 604C: CJNE  A,#0FFh,X6092h
+  + 6210: JC    X622Bh
+  + 6212: CJNE  A,#0FFh,X625Bh
+  + 6215: JB    25h.4,X6241h
+
+===== replace  V1.3 6055..6055 (1 Instr.)  <->  V1.5 621E..621E (1 Instr.) =====
+  - 6055: DJNZ  08h,X606Ch
+  + 621E: DJNZ  08h,X6241h
+
+===== replace  V1.3 6095..6098 (2 Instr.)  <->  V1.5 625E..6261 (2 Instr.) =====
+  - 6095: CJNE  A,#0E7h,X60DBh
+  - 6098: JB    26h.7,X60BBh
+  + 625E: CJNE  A,#0E7h,X62A8h
+  + 6261: JB    26h.7,X6288h
+
+===== replace  V1.3 60A0..60A0 (1 Instr.)  <->  V1.5 6269..6269 (1 Instr.) =====
+  - 60A0: JNC   X60DBh
+  + 6269: JNC   X6284h
+
+===== replace  V1.3 60A6..60A6 (1 Instr.)  <->  V1.5 626F..626F (1 Instr.) =====
+  - 60A6: JC    X60DBh
+  + 626F: JC    X62A8h
+
+===== replace  V1.3 60B7..60B9 (2 Instr.)  <->  V1.5 6280..6286 (4 Instr.) =====
+  - 60B7: JNZ   X60BEh
+  - 60B9: SJMP  X60C5h
+  + 6280: JNZ   X628Bh
+  + 6282: SJMP  X6292h
+  + 6284: SETB  26h.6
+  + 6286: SJMP  X62A8h
+
+===== replace  V1.3 60DC..60DC (1 Instr.)  <->  V1.5 62A9..62A9 (1 Instr.) =====
+  - 60DC: JB    ACC.7,X60F5h
+  + 62A9: JB    ACC.7,X62C6h
+
+===== replace  V1.3 60E3..60E3 (1 Instr.)  <->  V1.5 62B0..62B0 (1 Instr.) =====
+  - 60E3: JNB   26h.1,X60EEh
+  + 62B0: JNB   26h.1,X62BEh
+
+===== replace  V1.3 60E8..60E8 (1 Instr.)  <->  V1.5 62B5..62B8 (2 Instr.) =====
+  - 60E8: JB    ACC.7,X60EEh
+  + 62B5: JB    ACC.7,X62BEh
+  + 62B8: MOV   10h,#00h
+
+===== replace  V1.3 60F2..60FE (5 Instr.)  <->  V1.5 62C2..62D1 (7 Instr.) =====
+  - 60F2: LJMP  X61A2h
+  - 60F5: CJNE  A,#0E7h,X6104h
+  - 60F8: JB    26h.0,X60DAh
+  - 60FB: JB    26h.7,X60DAh
+  - 60FE: JNB   26h.1,X613Eh
+  + 62C2: LCALL X6376h
+  + 62C5: RET
+  + 62C6: CJNE  A,#0E7h,X62D6h
+  + 62C9: JB    26h.0,X62A7h
+  + 62CC: JB    26h.7,X62A7h
+  + 62CF: MOV   C,26h.1
+  + 62D1: JNC   X6310h
+
+===== replace  V1.3 611D..611D (1 Instr.)  <->  V1.5 62EF..62EF (1 Instr.) =====
+  - 611D: SJMP  X6180h
+  + 62EF: SJMP  X6354h
+
+===== replace  V1.3 6137..6137 (1 Instr.)  <->  V1.5 6309..6309 (1 Instr.) =====
+  - 6137: CJNE  A,#0E3h,X6145h
+  + 6309: CJNE  A,#0E3h,X631Ah
+
+===== insert  V1.3 6142..6142 (0 Instr.)  <->  V1.5 6314..6314 (1 Instr.) =====
+  + 6314: LCALL X632Dh
+
+===== replace  V1.3 6147..6147 (1 Instr.)  <->  V1.5 631C..631C (1 Instr.) =====
+  - 6147: LJMP  X61A2h
+  + 631C: LJMP  X6376h
+
+===== replace  V1.3 6166..6166 (1 Instr.)  <->  V1.5 633B..633B (1 Instr.) =====
+  - 6166: LCALL X61E8h
+  + 633B: MOV   A,68h
+
+===== replace  V1.3 616C..616C (1 Instr.)  <->  V1.5 6340..6340 (1 Instr.) =====
+  - 616C: CJNE  A,#1Fh,X6170h
+  + 6340: JNB   25h.0,X6344h
+
+===== replace  V1.3 6173..6173 (1 Instr.)  <->  V1.5 6347..6347 (1 Instr.) =====
+  - 6173: LCALL X614Ah
+  + 6347: LCALL X631Fh
+
+===== replace  V1.3 6180..6180 (1 Instr.)  <->  V1.5 6354..6354 (1 Instr.) =====
+  - 6180: LCALL X614Ah
+  + 6354: LCALL X631Fh
+
+===== replace  V1.3 61A2..61A2 (1 Instr.)  <->  V1.5 6376..6376 (1 Instr.) =====
+  - 61A2: LCALL X614Ah
+  + 6376: LCALL X631Fh
+
+===== replace  V1.3 61B0..61B0 (1 Instr.)  <->  V1.5 6384..6384 (1 Instr.) =====
+  - 61B0: LCALL X6158h
+  + 6384: LCALL X632Dh
+
+===== replace  V1.3 61E0..61E0 (1 Instr.)  <->  V1.5 63B4..63B4 (1 Instr.) =====
+  - 61E0: LCALL X624Ch
+  + 63B4: LCALL X641Eh
+
+===== delete  V1.3 61E7..61F6 (10 Instr.)  <->  V1.5 63BB..63BB (0 Instr.) =====
+  - 61E7: RET
+  - 61E8: MOV   A,68h
+  - 61EA: ANL   A,#0Fh
+  - 61EC: MOV   R3,A
+  - 61ED: MOV   A,68h
+  - 61EF: ANL   A,#0F0h
+  - 61F1: SWAP  A
+  - 61F2: MOV   B,#0Ah
+  - 61F5: MUL   AB
+  - 61F6: ADD   A,R3
+
+===== replace  V1.3 6207..6207 (1 Instr.)  <->  V1.5 63CB..63CB (1 Instr.) =====
+  - 6207: JZ    X6215h
+  + 63CB: JZ    X63E7h
+
+===== replace  V1.3 620C..620C (1 Instr.)  <->  V1.5 63D0..63DC (7 Instr.) =====
+  - 620C: MOV   A,#3Fh
+  + 63D0: MOV   A,4Eh
+  + 63D2: ANL   A,#3Fh
+  + 63D4: ADD   A,#0E0h
+  + 63D6: MOV   A,4Eh
+  + 63D8: ANL   A,#1Fh
+  + 63DA: JNC   X63DEh
+  + 63DC: MOV   A,#1Fh
+
+===== replace  V1.3 620F..620F (1 Instr.)  <->  V1.5 63DF..63E1 (2 Instr.) =====
+  - 620F: MOV   4Fh,#0DFh
+  + 63DF: ADD   A,#0C0h
+  + 63E1: MOV   4Fh,A
+
+===== insert  V1.3 6214..6214 (0 Instr.)  <->  V1.5 63E5..63E5 (1 Instr.) =====
+  + 63E5: MOV   A,R5
+
+===== replace  V1.3 6220..6220 (1 Instr.)  <->  V1.5 63F2..63F6 (3 Instr.) =====
+  - 6220: JB    ACC.5,X620Ch
+  + 63F2: ADD   A,#0E0h
+  + 63F4: JC    X63D0h
+  + 63F6: MOV   A,R5
+
+===== delete  V1.3 622E..622E (1 Instr.)  <->  V1.5 6402..6402 (0 Instr.) =====
+  - 622E: CLR   SFR_D8.6
+
+===== replace  V1.3 6249..6249 (1 Instr.)  <->  V1.5 641B..641B (1 Instr.) =====
+  - 6249: LCALL X622Eh
+  + 641B: LCALL X6402h
+
+===== delete  V1.3 625C..625C (1 Instr.)  <->  V1.5 642E..642E (0 Instr.) =====
+  - 625C: CLR   SFR_D8.6
+
+===== insert  V1.3 629F..629F (0 Instr.)  <->  V1.5 646F..646F (1 Instr.) =====
+  + 646F: CLR   21h.6
+
+===== replace  V1.3 62C4..62C4 (1 Instr.)  <->  V1.5 6496..6496 (1 Instr.) =====
+  - 62C4: JC    X62DAh
+  + 6496: JC    X64AEh
+
+===== insert  V1.3 62CB..62CB (0 Instr.)  <->  V1.5 649D..649D (1 Instr.) =====
+  + 649D: CLR   26h.2
+
+===== delete  V1.3 62E0..62E0 (1 Instr.)  <->  V1.5 64B4..64B4 (0 Instr.) =====
+  - 62E0: ORL   C,24h.6
+
+===== replace  V1.3 62FC..62FC (1 Instr.)  <->  V1.5 64CE..64CE (1 Instr.) =====
+  - 62FC: JNB   26h.6,X6326h
+  + 64CE: JNB   26h.6,X64FBh
+
+===== replace  V1.3 6320..6320 (1 Instr.)  <->  V1.5 64F2..64F5 (2 Instr.) =====
+  - 6320: JNB   25h.5,X6326h
+  + 64F2: JNB   25h.5,X64FBh
+  + 64F5: LCALL X6EE9h
+
+===== replace  V1.3 63A9..63A9 (1 Instr.)  <->  V1.5 657E..657E (1 Instr.) =====
+  - 63A9: ANL   67h,#0F0h
+  + 657E: MOV   67h,#00h
+
+===== replace  V1.3 63DC..63DC (1 Instr.)  <->  V1.5 65B1..65B1 (1 Instr.) =====
+  - 63DC: LCALL X645Ah
+  + 65B1: LCALL X6650h
+
+===== replace  V1.3 63E9..63EB (2 Instr.)  <->  V1.5 65BE..65C0 (2 Instr.) =====
+  - 63E9: SJMP  X6454h
+  - 63EB: JNB   TF0,X6454h
+  + 65BE: SJMP  X6632h
+  + 65C0: JNB   TF0,X6632h
+
+===== replace  V1.3 63F0..63F0 (1 Instr.)  <->  V1.5 65C5..65C5 (1 Instr.) =====
+  - 63F0: DJNZ  09h,X6454h
+  + 65C5: DJNZ  09h,X6632h
+
+===== replace  V1.3 63F7..63F7 (1 Instr.)  <->  V1.5 65CC..65CC (1 Instr.) =====
+  - 63F7: LCALL X645Ah
+  + 65CC: LCALL X6650h
+
+===== replace  V1.3 6403..6403 (1 Instr.)  <->  V1.5 65D8..65D8 (1 Instr.) =====
+  - 6403: JNB   TF0,X6454h
+  + 65D8: JNB   TF0,X6632h
+
+===== replace  V1.3 6408..6408 (1 Instr.)  <->  V1.5 65DD..65DD (1 Instr.) =====
+  - 6408: DJNZ  09h,X6454h
+  + 65DD: DJNZ  09h,X6632h
+
+===== insert  V1.3 6411..6411 (0 Instr.)  <->  V1.5 65E6..65E6 (1 Instr.) =====
+  + 65E6: MOV   17h,5Eh
+
+===== replace  V1.3 642E..6430 (2 Instr.)  <->  V1.5 6606..660C (4 Instr.) =====
+  - 642E: MOV   A,49h
+  - 6430: CJNE  A,#26h,X644Fh
+  + 6606: MOV   C,2Bh.4
+  + 6608: ANL   C,27h.1
+  + 660A: ANL   C,28h.1
+  + 660C: JNC   X662Dh
+
+===== insert  V1.3 6439..6439 (0 Instr.)  <->  V1.5 6614..6614 (1 Instr.) =====
+  + 6614: MOV   5Eh,17h
+
+===== replace  V1.3 644C..644C (1 Instr.)  <->  V1.5 662A..662A (1 Instr.) =====
+  - 644C: LCALL X645Ah
+  + 662A: LCALL X6650h
+
+===== replace  V1.3 6457..6457 (1 Instr.)  <->  V1.5 6635..664F (11 Instr.) =====
+  - 6457: LJMP  X5F14h
+  + 6635: MOV   69h,#80h
+  + 6638: MOV   0Ch,#00h
+  + 663B: LCALL X60C6h
+  + 663E: CLR   C
+  + 663F: JNB   25h.7,X664Fh
+  + 6642: MOV   A,#0FAh
+  + 6644: LCALL X60EBh
+  + 6647: MOV   A,15h
+  + 6649: CJNE  A,#0C4h,X664Fh
+  + 664C: ORL   0Ch,#01h
+  + 664F: RET
+
+===== replace  V1.3 650F..6512 (2 Instr.)  <->  V1.5 6705..6708 (2 Instr.) =====
+  - 650F: LCALL X6514h
+  - 6512: SJMP  X64FAh
+  + 6705: LCALL X6709h
+  + 6708: RET
+
+===== replace  V1.3 651E..6520 (2 Instr.)  <->  V1.5 6713..6715 (2 Instr.) =====
+  - 651E: JC    X653Ah
+  - 6520: JNB   26h.5,X6532h
+  + 6713: JC    X6735h
+  + 6715: JNB   26h.5,X672Ah
+
+===== replace  V1.3 6532..6532 (1 Instr.)  <->  V1.5 6727..672A (2 Instr.) =====
+  - 6532: JNB   25h.6,X653Ah
+  + 6727: LCALL X66EDh
+  + 672A: JNB   25h.6,X6735h
+
+===== insert  V1.3 653A..653A (0 Instr.)  <->  V1.5 6732..6732 (1 Instr.) =====
+  + 6732: LCALL X66EDh
+
+===== replace  V1.3 656D..656D (1 Instr.)  <->  V1.5 6768..6768 (1 Instr.) =====
+  - 656D: JNC   X64F7h
+  + 6768: JNC   X66EDh
+
+===== replace  V1.3 6580..6583 (2 Instr.)  <->  V1.5 677B..677E (2 Instr.) =====
+  - 6580: MOV   6Ch,#65h
+  - 6583: MOV   6Bh,#8Ah
+  + 677B: MOV   6Ch,#67h
+  + 677E: MOV   6Bh,#85h
+
+===== replace  V1.3 669E..669E (1 Instr.)  <->  V1.5 6899..6899 (1 Instr.) =====
+  - 669E: JB    26h.4,X66EAh
+  + 6899: JB    26h.4,X68EAh
+
+===== replace  V1.3 66A3..66A3 (1 Instr.)  <->  V1.5 689E..68A3 (4 Instr.) =====
+  - 66A3: JZ    X66E7h
+  + 689E: JZ    X68E7h
+  + 68A0: ANL   A,#3Fh
+  + 68A2: DEC   A
+  + 68A3: JZ    X68DCh
+
+===== replace  V1.3 6734..6734 (1 Instr.)  <->  V1.5 6934..6934 (1 Instr.) =====
+  - 6734: MOV   0Ch,#0EFh
+  + 6934: ANL   0Ch,#0EFh
+
+===== replace  V1.3 683A..683A (1 Instr.)  <->  V1.5 6A3A..6A3A (1 Instr.) =====
+  - 683A: SJMP  X68A5h
+  + 6A3A: SJMP  X6A7Dh
+
+===== replace  V1.3 683F..683F (1 Instr.)  <->  V1.5 6A3F..6A3F (1 Instr.) =====
+  - 683F: JC    X68A5h
+  + 6A3F: JC    X6A7Dh
+
+===== replace  V1.3 6843..6843 (1 Instr.)  <->  V1.5 6A43..6A43 (1 Instr.) =====
+  - 6843: JZ    X68A5h
+  + 6A43: JZ    X6A7Dh
+
+===== replace  V1.3 6847..6847 (1 Instr.)  <->  V1.5 6A47..6A47 (1 Instr.) =====
+  - 6847: JZ    X68A5h
+  + 6A47: JZ    X6A7Dh
+
+===== replace  V1.3 685B..6873 (15 Instr.)  <->  V1.5 6A5B..6A67 (6 Instr.) =====
+  - 685B: JZ    X68A5h
+  - 685D: SJMP  X689Ch
+  - 685F: JNB   2Bh.0,X68A2h
+  - 6862: MOV   A,#0F4h
+  - 6864: ADD   A,R3
+  - 6865: JNC   X689Ch
+  - 6867: MOV   R4,#06h
+  - 6869: MOV   A,R4
+  - 686A: ADD   A,#0Fh
+  - 686C: MOVC  A,@A+PC
+  - 686D: XRL   A,@R0
+  - 686E: CLR   ACC.5
+  - 6870: JNZ   X6883h
+  - 6872: INC   R0
+  - 6873: DJNZ  R4,X6869h
+  + 6A5B: JZ    X6A7Dh
+  + 6A5D: SJMP  X6A74h
+  + 6A5F: JNB   2Bh.0,X6A7Ah
+  + 6A62: LCALL X6E14h
+  + 6A65: JC    X6A74h
+  + 6A67: JZ    X6A71h
+
+===== delete  V1.3 6883..6893 (11 Instr.)  <->  V1.5 6A71..6A71 (0 Instr.) =====
+  - 6883: MOV   A,#0FDh
+  - 6885: ADD   A,R3
+  - 6886: JNC   X689Ch
+  - 6888: MOV   A,@R0
+  - 6889: CLR   ACC.5
+  - 688B: CJNE  A,#53h,X6899h
+  - 688E: INC   R0
+  - 688F: DEC   R3
+  - 6890: MOV   A,@R0
+  - 6891: CLR   ACC.5
+  - 6893: CJNE  A,#50h,X6899h
+
+===== delete  V1.3 6899..689A (2 Instr.)  <->  V1.5 6A74..6A74 (0 Instr.) =====
+  - 6899: INC   R0
+  - 689A: DJNZ  R3,X6883h
+
+===== replace  V1.3 68FC..68FC (1 Instr.)  <->  V1.5 6AD4..6AD4 (1 Instr.) =====
+  - 68FC: JNZ   X694Eh
+  + 6AD4: JNZ   X6B2Ch
+
+===== replace  V1.3 6911..6911 (1 Instr.)  <->  V1.5 6AE9..6AE9 (1 Instr.) =====
+  - 6911: SJMP  X6932h
+  + 6AE9: SJMP  X6B10h
+
+===== replace  V1.3 6918..6918 (1 Instr.)  <->  V1.5 6AF0..6AF0 (1 Instr.) =====
+  - 6918: SJMP  X6932h
+  + 6AF0: SJMP  X6B10h
+
+===== insert  V1.3 6920..6920 (0 Instr.)  <->  V1.5 6AF8..6AFC (3 Instr.) =====
+  + 6AF8: MOV   A,4Bh
+  + 6AFA: ANL   A,#3Fh
+  + 6AFC: JZ    X6B18h
+
+===== replace  V1.3 692C..692C (1 Instr.)  <->  V1.5 6B0A..6B0A (1 Instr.) =====
+  - 692C: CJNE  A,#3Bh,X6920h
+  + 6B0A: CJNE  A,#3Bh,X6AF8h
+
+===== replace  V1.3 6950..6953 (2 Instr.)  <->  V1.5 6B2E..6B31 (2 Instr.) =====
+  - 6950: CJNE  A,#0FFh,X697Ch
+  - 6953: JB    24h.5,X697Ch
+  + 6B2E: CJNE  A,#0FFh,X6B5Bh
+  + 6B31: JB    24h.5,X6B5Bh
+
+===== replace  V1.3 696C..696F (2 Instr.)  <->  V1.5 6B4A..6B4D (2 Instr.) =====
+  - 696C: CJNE  A,#3Bh,X6971h
+  - 696F: SJMP  X68F6h
+  + 6B4A: CJNE  A,#3Bh,X6B50h
+  + 6B4D: LJMP  X6ACEh
+
+===== replace  V1.3 69C5..69C5 (1 Instr.)  <->  V1.5 6BA4..6BA4 (1 Instr.) =====
+  - 69C5: CJNE  A,#0C4h,X6A39h
+  + 6BA4: CJNE  A,#0C4h,X6C23h
+
+===== replace  V1.3 69E9..69E9 (1 Instr.)  <->  V1.5 6BC8..6BC8 (1 Instr.) =====
+  - 69E9: JC    X69F4h
+  + 6BC8: JC    X6BDEh
+
+===== replace  V1.3 69F2..69F2 (1 Instr.)  <->  V1.5 6BD1..6BDB (5 Instr.) =====
+  - 69F2: SJMP  X69CBh
+  + 6BD1: CJNE  R2,#00h,X6BAAh
+  + 6BD4: MOV   A,10h
+  + 6BD6: CJNE  A,#1Bh,X6BAAh
+  + 6BD9: MOV   R3,#35h
+  + 6BDB: LJMP  X6ADFh
+
+===== replace  V1.3 6A11..6A11 (1 Instr.)  <->  V1.5 6BFB..6BFB (1 Instr.) =====
+  - 6A11: SJMP  X69CBh
+  + 6BFB: SJMP  X6BAAh
+
+===== replace  V1.3 6A1B..6A1B (1 Instr.)  <->  V1.5 6C05..6C05 (1 Instr.) =====
+  - 6A1B: SJMP  X69CBh
+  + 6C05: SJMP  X6BAAh
+
+===== replace  V1.3 6A27..6A27 (1 Instr.)  <->  V1.5 6C11..6C11 (1 Instr.) =====
+  - 6A27: JNB   22h.7,X69CBh
+  + 6C11: JNB   22h.7,X6BAAh
+
+===== replace  V1.3 6A2C..6A2C (1 Instr.)  <->  V1.5 6C16..6C16 (1 Instr.) =====
+  - 6A2C: SJMP  X69CBh
+  + 6C16: SJMP  X6BAAh
+
+===== replace  V1.3 6A33..6A33 (1 Instr.)  <->  V1.5 6C1D..6C1D (1 Instr.) =====
+  - 6A33: JZ    X69CBh
+  + 6C1D: JZ    X6BAAh
+
+===== replace  V1.3 6A37..6A37 (1 Instr.)  <->  V1.5 6C21..6C21 (1 Instr.) =====
+  - 6A37: SJMP  X69CBh
+  + 6C21: SJMP  X6BAAh
+
+===== replace  V1.3 6AD2..6AD2 (1 Instr.)  <->  V1.5 6CBC..6CBC (1 Instr.) =====
+  - 6AD2: MOV   0Ch,#0EFh
+  + 6CBC: ANL   0Ch,#0EFh
+
+===== replace  V1.3 6B01..6B19 (15 Instr.)  <->  V1.5 6CEB..6D0D (23 Instr.) =====
+  - 6B01: MOV   R2,68h
+  - 6B03: MOV   R3,4Ch
+  - 6B05: MOV   R4,4Fh
+  - 6B07: MOV   C,20h.0
+  - 6B09: RRC   A
+  - 6B0A: MOV   C,2Bh.0
+  - 6B0C: RRC   A
+  - 6B0D: MOV   R5,A
+  - 6B0E: CLR   A
+  - 6B0F: MOV   20h,A
+  - 6B11: MOV   21h,A
+  - 6B13: MOV   22h,A
+  - 6B15: MOV   23h,A
+  - 6B17: MOV   R0,#27h
+  - 6B19: MOV   R1,#22h
+  + 6CEB: MOV   R0,#0F0h
+  + 6CED: MOV   @R0,25h
+  + 6CEF: INC   R0
+  + 6CF0: MOV   @R0,26h
+  + 6CF2: INC   R0
+  + 6CF3: MOV   @R0,49h
+  + 6CF5: INC   R0
+  + 6CF6: MOV   @R0,4Bh
+  + 6CF8: INC   R0
+  + 6CF9: MOV   @R0,4Ch
+  + 6CFB: INC   R0
+  + 6CFC: MOV   @R0,4Ah
+  + 6CFE: INC   R0
+  + 6CFF: MOV   @R0,4Eh
+  + 6D01: INC   R0
+  + 6D02: MOV   @R0,4Fh
+  + 6D04: INC   R0
+  + 6D05: MOV   @R0,4Dh
+  + 6D07: INC   R0
+  + 6D08: MOV   @R0,68h
+  + 6D0A: INC   R0
+  + 6D0B: MOV   A,69h
+  + 6D0D: ANL   A,#0FEh
+
+===== replace  V1.3 6B1D..6B1F (2 Instr.)  <->  V1.5 6D11..6D1E (10 Instr.) =====
+  - 6B1D: DJNZ  R1,X6B1Bh
+  - 6B1F: MOV   R0,#50h
+  + 6D11: MOV   @R0,0Ch
+  + 6D13: INC   R0
+  + 6D14: CLR   A
+  + 6D15: MOV   C,20h.0
+  + 6D17: RLC   A
+  + 6D18: MOV   C,2Bh.0
+  + 6D1A: RLC   A
+  + 6D1B: MOV   @R0,A
+  + 6D1C: MOV   R0,#20h
+  + 6D1E: CLR   A
+
+===== replace  V1.3 6B23..6B23 (1 Instr.)  <->  V1.5 6D21..6D21 (1 Instr.) =====
+  - 6B23: CJNE  R0,#6Bh,X6B21h
+  + 6D21: CJNE  R0,#6Ah,X6D1Fh
+
+===== replace  V1.3 6B29..6B2A (2 Instr.)  <->  V1.5 6D27..6D4E (27 Instr.) =====
+  - 6B29: MOV   A,R5
+  - 6B2A: RLC   A
+  + 6D27: MOV   R0,#0F0h
+  + 6D29: MOV   25h,@R0
+  + 6D2B: INC   R0
+  + 6D2C: MOV   26h,@R0
+  + 6D2E: INC   R0
+  + 6D2F: MOV   49h,@R0
+  + 6D31: INC   R0
+  + 6D32: MOV   4Bh,@R0
+  + 6D34: INC   R0
+  + 6D35: MOV   4Ch,@R0
+  + 6D37: INC   R0
+  + 6D38: MOV   4Ah,@R0
+  + 6D3A: INC   R0
+  + 6D3B: MOV   4Eh,@R0
+  + 6D3D: INC   R0
+  + 6D3E: MOV   4Fh,@R0
+  + 6D40: INC   R0
+  + 6D41: MOV   4Dh,@R0
+  + 6D43: INC   R0
+  + 6D44: MOV   68h,@R0
+  + 6D46: INC   R0
+  + 6D47: MOV   69h,@R0
+  + 6D49: INC   R0
+  + 6D4A: MOV   0Ch,@R0
+  + 6D4C: INC   R0
+  + 6D4D: MOV   A,@R0
+  + 6D4E: RRC   A
+
+===== replace  V1.3 6B2D..6B2D (1 Instr.)  <->  V1.5 6D51..6D51 (1 Instr.) =====
+  - 6B2D: RLC   A
+  + 6D51: RRC   A
+
+===== replace  V1.3 6B30..6B3B (6 Instr.)  <->  V1.5 6D54..6D5B (6 Instr.) =====
+  - 6B30: SETB  2Eh.3
+  - 6B32: MOV   68h,R2
+  - 6B34: MOV   4Ch,R3
+  - 6B36: MOV   4Fh,R4
+  - 6B38: MOV   29h,#1Fh
+  - 6B3B: SETB  24h.4
+  + 6D54: MOV   R0,#0F0h
+  + 6D56: MOV   R3,#10h
+  + 6D58: CLR   A
+  + 6D59: MOV   @R0,A
+  + 6D5A: INC   R0
+  + 6D5B: DJNZ  R3,X6D59h
+
+===== insert  V1.3 6B41..6B41 (0 Instr.)  <->  V1.5 6D61..6D63 (2 Instr.) =====
+  + 6D61: SETB  2Eh.3
+  + 6D63: SETB  24h.4
+
+===== insert  V1.3 6B44..6B44 (0 Instr.)  <->  V1.5 6D68..6D68 (1 Instr.) =====
+  + 6D68: MOV   29h,#1Fh
+
+===== replace  V1.3 6B4A..6B4A (1 Instr.)  <->  V1.5 6D71..6D71 (1 Instr.) =====
+  - 6B4A: MOV   67h,#11h
+  + 6D71: MOV   67h,#01h
+
+===== insert  V1.3 6BE7..6BE7 (0 Instr.)  <->  V1.5 6E0E..6E6B (52 Instr.) =====
+  + 6E0E: RET
+  + 6E14: MOV   R0,4Ch
+  + 6E16: MOV   A,4Bh
+  + 6E18: ANL   A,#3Fh
+  + 6E1A: MOV   R3,A
+  + 6E1B: MOV   A,R3
+  + 6E1C: ADD   A,#0FAh
+  + 6E1E: JNC   X6E4Bh
+  + 6E20: MOV   A,@R0
+  + 6E21: XRL   A,#44h
+  + 6E23: CLR   ACC.5
+  + 6E25: JNZ   X6E48h
+  + 6E27: MOV   R4,#06h
+  + 6E29: MOV   A,R4
+  + 6E2A: ADD   A,#14h
+  + 6E2C: MOVC  A,@A+PC
+  + 6E2D: XRL   A,@R0
+  + 6E2E: CLR   ACC.5
+  + 6E30: JNZ   X6E48h
+  + 6E32: INC   R0
+  + 6E33: DJNZ  R4,X6E29h
+  + 6E35: MOV   A,R3
+  + 6E36: CLR   C
+  + 6E37: SUBB  A,#06h
+  + 6E39: ANL   4Bh,#0C0h
+  + 6E3C: ORL   4Bh,A
+  + 6E3E: MOV   4Ch,R0
+  + 6E40: CLR   C
+  + 6E41: RET
+  + 6E48: INC   R0
+  + 6E49: DJNZ  R3,X6E1Bh
+  + 6E4B: MOV   R0,4Ch
+  + 6E4D: MOV   A,4Bh
+  + 6E4F: ANL   A,#3Fh
+  + 6E51: MOV   R3,A
+  + 6E52: MOV   A,#0FDh
+  + 6E54: ADD   A,R3
+  + 6E55: JNC   X6E6Bh
+  + 6E57: MOV   A,@R0
+  + 6E58: CLR   ACC.5
+  + 6E5A: CJNE  A,#53h,X6E68h
+  + 6E5D: INC   R0
+  + 6E5E: DEC   R3
+  + 6E5F: MOV   A,@R0
+  + 6E60: CLR   ACC.5
+  + 6E62: CJNE  A,#50h,X6E68h
+  + 6E65: CLR   A
+  + 6E66: CLR   C
+  + 6E67: RET
+  + 6E68: INC   R0
+  + 6E69: DJNZ  R3,X6E52h
+  + 6E6B: SETB  C
+
+===== replace  V1.3 6EA5..6EA5 (1 Instr.)  <->  V1.5 7125..7125 (1 Instr.) =====
+  - 6EA5: JNB   2Bh.0,X6EC5h
+  + 7125: JNB   2Bh.0,X7142h
+
+===== replace  V1.3 6EB5..6EB7 (2 Instr.)  <->  V1.5 7135..7137 (2 Instr.) =====
+  - 6EB5: SJMP  X6EEEh
+  - 6EB7: CJNE  A,#66h,X6EC5h
+  + 7135: SJMP  X716Bh
+  + 7137: CJNE  A,#66h,X7142h
+
+===== replace  V1.3 6EBC..6EC0 (3 Instr.)  <->  V1.5 713C..713C (1 Instr.) =====
+  - 6EBC: MOV   A,67h
+  - 6EBE: ANL   A,#0F0h
+  - 6EC0: SWAP  A
+  + 713C: MOV   A,5Eh
+
+===== replace  V1.3 6F70..6F70 (1 Instr.)  <->  V1.5 71ED..71ED (1 Instr.) =====
+  - 6F70: JC    X6FD5h
+  + 71ED: JC    X7255h
+
+===== insert  V1.3 6F83..6F83 (0 Instr.)  <->  V1.5 7200..7200 (1 Instr.) =====
+  + 7200: JB    ACC.7,X7257h
+
+===== replace  V1.3 6F8E..6F8E (1 Instr.)  <->  V1.5 720E..720E (1 Instr.) =====
+  - 6F8E: SJMP  X6FDEh
+  + 720E: SJMP  X7280h
+
+===== replace  V1.3 6F9D..6F9D (1 Instr.)  <->  V1.5 721D..721D (1 Instr.) =====
+  - 6F9D: JNB   ACC.3,X6FD7h
+  + 721D: JNB   ACC.3,X7279h
+
+===== replace  V1.3 6FBE..6FBE (1 Instr.)  <->  V1.5 723E..723E (1 Instr.) =====
+  - 6FBE: SJMP  X7004h
+  + 723E: SJMP  X72A6h
+
+===== replace  V1.3 6FD0..6FD5 (3 Instr.)  <->  V1.5 7250..7277 (21 Instr.) =====
+  - 6FD0: JB    22h.5,X7004h
+  - 6FD3: SJMP  X6FDEh
+  - 6FD5: SJMP  X700Ah
+  + 7250: JB    22h.5,X72A6h
+  + 7253: SJMP  X7280h
+  + 7255: SJMP  X72ACh
+  + 7257: MOV   R4,#00h
+  + 7259: MOV   R6,#00h
+  + 725B: JNB   ACC.4,X7260h
+  + 725E: MOV   R4,#02h
+  + 7260: ANL   A,#07h
+  + 7262: MOV   R3,A
+  + 7263: MOV   A,@R1
+  + 7264: MOV   B,#64h
+  + 7267: DIV   AB
+  + 7268: MOV   30h,A
+  + 726A: MOV   A,B
+  + 726C: MOV   B,#0Ah
+  + 726F: DIV   AB
+  + 7270: SWAP  A
+  + 7271: ORL   A,B
+  + 7273: MOV   31h,A
+  + 7275: MOV   R1,#30h
+  + 7277: SJMP  X7280h
+
+===== replace  V1.3 7039..7039 (1 Instr.)  <->  V1.5 72DB..72E2 (4 Instr.) =====
+  - 7039: CJNE  R5,#01h,X7067h
+  + 72DB: CJNE  R5,#01h,X730Fh
+  + 72DE: MOV   C,2Ch.5
+  + 72E0: ORL   C,2Ch.6
+  + 72E2: JC    X730Fh
+
+===== replace  V1.3 704B..704B (1 Instr.)  <->  V1.5 72F3..72F3 (1 Instr.) =====
+  - 704B: JC    X700Ah
+  + 72F3: JC    X72ACh
+
+===== replace  V1.3 706F..706F (1 Instr.)  <->  V1.5 7317..7317 (1 Instr.) =====
+  - 706F: JC    X700Ah
+  + 7317: JC    X72ACh
+
+===== replace  V1.3 710D..710D (1 Instr.)  <->  V1.5 73B5..73B5 (1 Instr.) =====
+  - 710D: LCALL X715Ch
+  + 73B5: LCALL X7409h
+
+===== replace  V1.3 7118..7118 (1 Instr.)  <->  V1.5 73C0..73C5 (3 Instr.) =====
+  - 7118: CJNE  A,#0C4h,X7121h
+  + 73C0: CJNE  A,#0C4h,X73CEh
+  + 73C3: MOV   A,0Ch
+  + 73C5: JB    ACC.0,X73D8h
+
+===== replace  V1.3 7193..7195 (2 Instr.)  <->  V1.5 7440..7440 (1 Instr.) =====
+  - 7193: ANL   A,#0Fh
+  - 7195: JNZ   X7187h
+  + 7440: JNZ   X7434h
+
+===== replace  V1.3 71B6..71B6 (1 Instr.)  <->  V1.5 7461..7461 (1 Instr.) =====
+  - 71B6: LCALL X715Ch
+  + 7461: LCALL X7409h
+
+===== replace  V1.3 71E0..71E0 (1 Instr.)  <->  V1.5 748B..748B (1 Instr.) =====
+  - 71E0: JNB   2Bh.0,X7242h
+  + 748B: JNB   2Bh.0,X74EAh
+
+===== replace  V1.3 71FC..71FC (1 Instr.)  <->  V1.5 74A7..74A7 (1 Instr.) =====
+  - 71FC: SJMP  X7247h
+  + 74A7: SJMP  X74EFh
+
+===== replace  V1.3 7220..7220 (1 Instr.)  <->  V1.5 74CB..74CB (1 Instr.) =====
+  - 7220: CJNE  R2,#01h,X723Ah
+  + 74CB: CJNE  R2,#01h,X74E2h
+
+===== insert  V1.3 7226..7226 (0 Instr.)  <->  V1.5 74D1..74D1 (1 Instr.) =====
+  + 74D1: JZ    X74E5h
+
+===== replace  V1.3 722B..722B (1 Instr.)  <->  V1.5 74D8..74D8 (1 Instr.) =====
+  - 722B: ANL   A,#0Fh
+  + 74D8: ANL   A,#1Fh
+
+===== replace  V1.3 722F..7238 (6 Instr.)  <->  V1.5 74DC..74E0 (3 Instr.) =====
+  - 722F: JC    X723Ah
+  - 7231: ANL   67h,#0Fh
+  - 7234: MOV   A,R3
+  - 7235: SWAP  A
+  - 7236: ORL   67h,A
+  - 7238: SJMP  X7299h
+  + 74DC: JC    X74E5h
+  + 74DE: MOV   5Eh,R3
+  + 74E0: SJMP  X753Eh
+
+===== replace  V1.3 723B..723B (1 Instr.)  <->  V1.5 74E3..74E3 (1 Instr.) =====
+  - 723B: JZ    X7299h
+  + 74E3: JZ    X753Eh
+
+===== replace  V1.3 7247..7247 (1 Instr.)  <->  V1.5 74EF..74EF (1 Instr.) =====
+  - 7247: CJNE  A,#02h,X72BFh
+  + 74EF: CJNE  A,#02h,X7564h
+
+===== replace  V1.3 7254..7254 (1 Instr.)  <->  V1.5 74FC..74FC (1 Instr.) =====
+  - 7254: JC    X729Ch
+  + 74FC: JC    X7541h
+
+===== insert  V1.3 7265..7265 (0 Instr.)  <->  V1.5 750D..750D (1 Instr.) =====
+  + 750D: LCALL X7971h
+
+===== replace  V1.3 726E..726E (1 Instr.)  <->  V1.5 7519..7519 (1 Instr.) =====
+  - 726E: SJMP  X72B5h
+  + 7519: SJMP  X755Ah
+
+===== delete  V1.3 7274..7278 (3 Instr.)  <->  V1.5 751F..751F (0 Instr.) =====
+  - 7274: MOV   C,2Eh.7
+  - 7276: ORL   C,29h.0
+  - 7278: MOV   29h.0,C
+
+===== replace  V1.3 72F4..72F9 (3 Instr.)  <->  V1.5 7599..759E (3 Instr.) =====
+  - 72F4: SJMP  X732Bh
+  - 72F6: CJNE  A,#05h,X732Eh
+  - 72F9: CJNE  R2,#01h,X731Eh
+  + 7599: SJMP  X75CDh
+  + 759B: CJNE  A,#05h,X75D0h
+  + 759E: CJNE  R2,#01h,X75C0h
+
+===== replace  V1.3 72FE..72FE (1 Instr.)  <->  V1.5 75A3..75A3 (1 Instr.) =====
+  - 72FE: JZ    X731Eh
+  + 75A3: JZ    X75C0h
+
+===== replace  V1.3 7301..7304 (2 Instr.)  <->  V1.5 75A6..75A6 (1 Instr.) =====
+  - 7301: ANL   67h,#0F0h
+  - 7304: ORL   67h,A
+  + 75A6: MOV   67h,A
+
+===== replace  V1.3 751F..7525 (3 Instr.)  <->  V1.5 77C1..77C1 (1 Instr.) =====
+  - 751F: CJNE  A,#03h,X7528h
+  - 7522: JNB   2Bh.4,X7528h
+  - 7525: LCALL X7693h
+  + 77C1: CJNE  A,#03h,X77C4h
+
+===== replace  V1.3 7538..7538 (1 Instr.)  <->  V1.5 77D4..77D4 (1 Instr.) =====
+  - 7538: LCALL X75ACh
+  + 77D4: LCALL X7862h
+
+===== replace  V1.3 7550..7550 (1 Instr.)  <->  V1.5 77EC..780A (19 Instr.) =====
+  - 7550: JZ    X74E5h
+  + 77EC: JZ    X7787h
+  + 77EE: MOV   A,R4
+  + 77EF: JNB   ACC.4,X780Ch
+  + 77F2: MOV   A,15h
+  + 77F4: MOV   B,#64h
+  + 77F7: MUL   AB
+  + 77F8: MOV   @R0,A
+  + 77F9: MOV   A,16h
+  + 77FB: SWAP  A
+  + 77FC: ANL   A,#0Fh
+  + 77FE: MOV   B,#0Ah
+  + 7801: MUL   AB
+  + 7802: ADD   A,@R0
+  + 7803: MOV   @R0,A
+  + 7804: MOV   A,16h
+  + 7806: ANL   A,#0Fh
+  + 7808: ADD   A,@R0
+  + 7809: MOV   @R0,A
+  + 780A: SJMP  X7831h
+
+===== delete  V1.3 755A..755D (2 Instr.)  <->  V1.5 7814..7814 (0 Instr.) =====
+  - 755A: JNB   ACC.4,X755Eh
+  - 755D: INC   R1
+
+===== replace  V1.3 75B2..75B2 (1 Instr.)  <->  V1.5 7868..7868 (1 Instr.) =====
+  - 75B2: JNB   ACC.5,X75CAh
+  + 7868: JNB   ACC.5,X7883h
+
+===== replace  V1.3 75B8..75B8 (1 Instr.)  <->  V1.5 786E..7871 (3 Instr.) =====
+  - 75B8: CJNE  R6,#91h,X75BEh
+  + 786E: MOV   A,R6
+  + 786F: ANL   A,#0F0h
+  + 7871: CJNE  A,#90h,X7877h
+
+===== replace  V1.3 75BE..75BE (1 Instr.)  <->  V1.5 7877..7877 (1 Instr.) =====
+  - 75BE: CJNE  R6,#81h,X75CAh
+  + 7877: CJNE  A,#80h,X7883h
+
+===== delete  V1.3 7693..76C3 (25 Instr.)  <->  V1.5 794C..794C (0 Instr.) =====
+  - 7693: MOV   18h,15h
+  - 7696: MOV   19h,16h
+  - 7699: CLR   A
+  - 769A: MOV   17h,A
+  - 769C: MOV   1Dh,A
+  - 769E: MOV   1Eh,A
+  - 76A0: LCALL X1392h
+  - 76A3: MOV   A,R6
+  - 76A4: ADD   A,#0E0h
+  - 76A6: JNC   X76BDh
+  - 76A8: CLR   C
+  - 76A9: MOV   A,1Eh
+  - 76AB: SUBB  A,19h
+  - 76AD: MOV   A,1Dh
+  - 76AF: SUBB  A,18h
+  - 76B1: JNC   X76BDh
+  - 76B3: LCALL X327Ch
+  - 76B6: CLR   C
+  - 76B7: MOV   A,R6
+  - 76B8: SUBB  A,#10h
+  - 76BA: MOV   R6,A
+  - 76BB: SJMP  X76A3h
+  - 76BD: MOV   15h,18h
+  - 76C0: MOV   16h,19h
+  - 76C3: RET
+
+===== insert  V1.3 76E8..76E8 (0 Instr.)  <->  V1.5 7970..7979 (6 Instr.) =====
+  + 7970: RET
+  + 7971: MOV   A,50h
+  + 7973: MOV   C,ACC.7
+  + 7975: ORL   C,2Eh.7
+  + 7977: ORL   C,29h.0
+  + 7979: MOV   29h.0,C
+
+===== replace  V1.3 7735..7735 (1 Instr.)  <->  V1.5 79C8..79C8 (1 Instr.) =====
+  - 7735: CJNE  R2,#83h,X76F6h
+  + 79C8: CJNE  R2,#8Dh,X7989h
+
+===== replace  V1.3 88CD..88CD (1 Instr.)  <->  V1.5 8BF3..8BF3 (1 Instr.) =====
+  - 88CD: JZ    X8921h
+  + 8BF3: JZ    X8C43h
+
+===== replace  V1.3 8901..8901 (1 Instr.)  <->  V1.5 8C27..8C27 (1 Instr.) =====
+  - 8901: CJNE  A,#66h,X8928h
+  + 8C27: CJNE  A,#66h,X8C4Ah
+
+===== replace  V1.3 890A..890A (1 Instr.)  <->  V1.5 8C30..8C30 (1 Instr.) =====
+  - 890A: JZ    X8921h
+  + 8C30: JZ    X8C43h
+
+===== replace  V1.3 8910..8910 (1 Instr.)  <->  V1.5 8C36..8C36 (1 Instr.) =====
+  - 8910: ANL   A,#0Fh
+  + 8C36: ANL   A,#1Fh
+
+===== replace  V1.3 8919..891F (4 Instr.)  <->  V1.5 8C3F..8C41 (2 Instr.) =====
+  - 8919: SWAP  A
+  - 891A: ANL   67h,#0Fh
+  - 891D: ORL   67h,A
+  - 891F: SJMP  X88FEh
+  + 8C3F: MOV   5Eh,A
+  + 8C41: SJMP  X8C24h
+
+===== replace  V1.3 8926..8926 (1 Instr.)  <->  V1.5 8C48..8C48 (1 Instr.) =====
+  - 8926: SJMP  X88FEh
+  + 8C48: SJMP  X8C24h
+
+===== replace  V1.3 892C..892C (1 Instr.)  <->  V1.5 8C4E..8C4E (1 Instr.) =====
+  - 892C: JNZ   X88E2h
+  + 8C4E: JNZ   X8C08h
+
+===== replace  V1.3 8952..8952 (1 Instr.)  <->  V1.5 8C74..8C74 (1 Instr.) =====
+  - 8952: JB    ACC.2,X88FEh
+  + 8C74: JB    ACC.2,X8C24h
+
+===== replace  V1.3 895F..895F (1 Instr.)  <->  V1.5 8C81..8C81 (1 Instr.) =====
+  - 895F: SJMP  X88FEh
+  + 8C81: SJMP  X8C24h
+
+===== replace  V1.3 8A2C..8A2C (1 Instr.)  <->  V1.5 8D4E..8D4E (1 Instr.) =====
+  - 8A2C: JB    ACC.4,X8AA0h
+  + 8D4E: JB    ACC.4,X8DC0h
+
+===== replace  V1.3 8A82..8A87 (3 Instr.)  <->  V1.5 8DA4..8DA6 (2 Instr.) =====
+  - 8A82: SJMP  X8ABBh
+  - 8A84: JB    24h.6,X8A97h
+  - 8A87: SETB  24h.6
+  + 8DA4: SJMP  X8DDBh
+  + 8DA6: JB    24h.6,X8DB7h
+
+===== replace  V1.3 8AB1..8AB1 (1 Instr.)  <->  V1.5 8DD1..8DD1 (1 Instr.) =====
+  - 8AB1: JBC   F0,X8A84h
+  + 8DD1: JBC   F0,X8DA6h
+
+===== replace  V1.3 8AC8..8AC8 (1 Instr.)  <->  V1.5 8DE8..8DE8 (1 Instr.) =====
+  - 8AC8: JC    X8A52h
+  + 8DE8: JC    X8D74h
+
+===== replace  V1.3 8BF7..8BF7 (1 Instr.)  <->  V1.5 8F17..8F17 (1 Instr.) =====
+  - 8BF7: JNZ   X8C08h
+  + 8F17: JNZ   X8F30h
+
+===== replace  V1.3 8C00..8C02 (2 Instr.)  <->  V1.5 8F20..8F2A (5 Instr.) =====
+  - 8C00: JZ    X8C08h
+  - 8C02: CJNE  R7,#01h,X8C1Ch
+  + 8F20: JZ    X8F30h
+  + 8F22: CJNE  R7,#01h,X8F44h
+  + 8F25: MOV   A,11h
+  + 8F27: JNB   ACC.4,X8F30h
+  + 8F2A: JNB   ACC.3,X8F44h
+
+===== replace  V1.3 8C08..8C08 (1 Instr.)  <->  V1.5 8F30..8F30 (1 Instr.) =====
+  - 8C08: DJNZ  R7,X8B8Bh
+  + 8F30: DJNZ  R7,X8F55h
+
+===== replace  V1.3 8C16..8C16 (1 Instr.)  <->  V1.5 8F3E..8F3E (1 Instr.) =====
+  - 8C16: JB    ACC.3,X8C28h
+  + 8F3E: JB    ACC.3,X8F58h
+
+===== insert  V1.3 8C1C..8C1C (0 Instr.)  <->  V1.5 8F44..8F47 (3 Instr.) =====
+  + 8F44: CLR   A
+  + 8F45: MOV   34h,A
+  + 8F47: MOV   35h,A
+
+===== replace  V1.3 8C26..8C26 (1 Instr.)  <->  V1.5 8F53..8F55 (2 Instr.) =====
+  - 8C26: SJMP  X8C0Ah
+  + 8F53: SJMP  X8F32h
+  + 8F55: LJMP  X8EABh
+
+===== replace  V1.3 8C35..8C35 (1 Instr.)  <->  V1.5 8F65..8F65 (1 Instr.) =====
+  - 8C35: JNB   ACC.2,X8C41h
+  + 8F65: JNB   ACC.2,X8F73h
+
+===== insert  V1.3 8C3D..8C3D (0 Instr.)  <->  V1.5 8F6D..8F6D (1 Instr.) =====
+  + 8F6D: SETB  29h.2
+
+===== insert  V1.3 8CE6..8CE6 (0 Instr.)  <->  V1.5 9018..904B (24 Instr.) =====
+  + 9018: RET
+  + 9019: MOV   A,0Ch
+  + 901B: JNB   ACC.0,X9048h
+  + 901E: JB    22h.7,X9048h
+  + 9021: MOV   A,13h
+  + 9023: JNZ   X9048h
+  + 9025: MOV   A,14h
+  + 9027: ADD   A,#0E0h
+  + 9029: JC    X9048h
+  + 902B: MOV   1Ah,15h
+  + 902E: MOV   1Bh,16h
+  + 9031: MOV   15h,#0C8h
+  + 9034: MOV   A,4Bh
+  + 9036: ANL   A,#1Fh
+  + 9038: MOV   R3,A
+  + 9039: MOV   A,14h
+  + 903B: CLR   C
+  + 903C: SUBB  A,R3
+  + 903D: MOV   16h,A
+  + 903F: LCALL X60F6h
+  + 9042: MOV   15h,1Ah
+  + 9045: MOV   16h,1Bh
+  + 9048: LCALL X68F0h
+  + 904B: SETB  24h.6
+
+===== insert  V1.3 92BC..92BC (0 Instr.)  <->  V1.5 9623..9625 (2 Instr.) =====
+  + 9623: MOV   A,0Ch
+  + 9625: JB    ACC.0,X962Bh
+
+===== delete  V1.3 932A..9577 (297 Instr.)  <->  V1.5 9696..9696 (0 Instr.) =====
+  - 932A: MOV   R2,#14h
+  - 932C: LCALL X5DF2h
+  - 932F: LCALL X396Dh
+  - 9332: MOV   A,4Bh
+  - 9334: JNB   ACC.6,X9342h
+  - 9337: ANL   A,#3Fh
+  - 9339: DEC   A
+  - 933A: ADD   A,4Ch
+  - 933C: MOV   R0,A
+  - 933D: MOV   @R0,#0Ah
+  - 933F: ANL   4Bh,#9Fh
+  - 9342: SETB  22h.6
+  - 9344: MOV   A,4Ch
+  - 9346: ADD   A,#06h
+  - 9348: MOV   4Ch,A
+  - 934A: MOV   A,4Bh
+  - 934C: SUBB  A,#06h
+  - 934E: MOV   4Bh,A
+  - 9350: MOV   R3,#01h
+  - 9352: LCALL X9537h
+  - 9355: JC    X93CDh
+  - 9357: MOV   A,11h
+  - 9359: ADD   A,#0FAh
+  - 935B: JC    X93CDh
+  - 935D: ADD   A,#02h
+  - 935F: JNC   X93CDh
+  - 9361: MOV   R3,11h
+  - 9363: LCALL X9537h
+  - 9366: JC    X93CDh
+  - 9368: MOV   A,11h
+  - 936A: CJNE  A,#02h,X93CDh
+  - 936D: MOV   R4,#05h
+  - 936F: MOV   A,10h
+  - 9371: JB    22h.7,X9380h
+  - 9374: RLC   A
+  - 9375: JC    X9380h
+  - 9377: DJNZ  R4,X9374h
+  - 9379: CJNE  A,#80h,X93CDh
+  - 937C: MOV   A,#41h
+  - 937E: SJMP  X9388h
+  - 9380: JNZ   X93CDh
+  - 9382: MOV   A,R4
+  - 9383: DEC   A
+  - 9384: JNZ   X9388h
+  - 9386: SETB  ACC.7
+  - 9388: MOV   1Dh,A
+  - 938A: MOV   A,11h
+  - 938C: DEC   A
+  - 938D: MOV   14h,A
+  - 938F: MOV   13h,10h
+  - 9392: MOV   A,@R0
+  - 9393: MOV   18h,A
+  - 9395: INC   4Ch
+  - 9397: DEC   4Bh
+  - 9399: ADD   A,#0EFh
+  - 939B: JC    X93CDh
+  - 939D: ADD   A,#09h
+  - 939F: JNC   X93CDh
+  - 93A1: MOV   A,@R0
+  - 93A2: CJNE  A,#0Ah,X93A9h
+  - 93A5: MOV   A,#80h
+  - 93A7: SJMP  X93B6h
+  - 93A9: JC    X93AFh
+  - 93AB: SUBB  A,#0Ah
+  - 93AD: SJMP  X93B6h
+  - 93AF: CLR   C
+  - 93B0: MOV   R3,A
+  - 93B1: MOV   A,#0Ah
+  - 93B3: SUBB  A,R3
+  - 93B4: SETB  ACC.6
+  - 93B6: MOV   1Eh,A
+  - 93B8: CLR   A
+  - 93B9: SETB  22h.5
+  - 93BB: MOV   49h,#00h
+  - 93BE: MOV   40h,#0C0h
+  - 93C1: LCALL X9AEEh
+  - 93C4: CLR   A
+  - 93C5: MOV   34h,A
+  - 93C7: MOV   35h,A
+  - 93C9: MOV   1Ah,A
+  - 93CB: SJMP  X93DBh
+  - 93CD: MOV   49h,#08h
+  - 93D0: SJMP  X93D5h
+  - 93D5: LJMP  X927Dh
+  - 93D8: LJMP  X927Dh
+  - 93DB: LCALL X517Dh
+  - 93DE: JNB   ACC.0,X93D8h
+  - 93E1: MOV   A,13h
+  - 93E3: JNZ   X93F7h
+  - 93E5: MOV   A,14h
+  - 93E7: ADD   A,#0FDh
+  - 93E9: JC    X93F7h
+  - 93EB: JBC   22h.7,X93F7h
+  - 93EE: MOV   R0,4Ch
+  - 93F0: MOV   A,@R0
+  - 93F1: XRL   A,18h
+  - 93F3: JNZ   X93CDh
+  - 93F5: SJMP  X93D8h
+  - 93F7: MOV   A,4Bh
+  - 93F9: ANL   A,#3Fh
+  - 93FB: ADD   A,#0FDh
+  - 93FD: JC    X941Ah
+  - 93FF: LCALL X66F0h
+  - 9402: MOV   1Fh,4Bh
+  - 9405: LCALL X5F2Eh
+  - 9408: MOV   A,4Bh
+  - 940A: CJNE  A,1Fh,X9415h
+  - 940D: LCALL X517Dh
+  - 9410: JB    ACC.0,X9405h
+  - 9413: SJMP  X93D8h
+  - 9415: MOV   4Ch,#80h
+  - 9418: SJMP  X93DBh
+  - 941A: MOV   R0,4Ch
+  - 941C: MOV   A,@R0
+  - 941D: JB    ACC.7,X942Ah
+  - 9420: MOV   10h,A
+  - 9422: INC   R0
+  - 9423: MOV   11h,@R0
+  - 9425: CLR   21h.2
+  - 9427: DEC   R0
+  - 9428: SJMP  X9437h
+  - 942A: CLR   A
+  - 942B: CLR   C
+  - 942C: INC   R0
+  - 942D: SUBB  A,@R0
+  - 942E: MOV   11h,A
+  - 9430: DEC   R0
+  - 9431: CLR   A
+  - 9432: SUBB  A,@R0
+  - 9433: MOV   10h,A
+  - 9435: SETB  21h.2
+  - 9437: MOV   A,18h
+  - 9439: ADD   A,@R0
+  - 943A: INC   R0
+  - 943B: ADD   A,@R0
+  - 943C: MOV   18h,A
+  - 943E: INC   4Ch
+  - 9440: DEC   4Bh
+  - 9442: INC   4Ch
+  - 9444: DEC   4Bh
+  - 9446: CLR   C
+  - 9447: MOV   A,14h
+  - 9449: SUBB  A,#02h
+  - 944B: MOV   14h,A
+  - 944D: MOV   A,13h
+  - 944F: SUBB  A,#00h
+  - 9451: MOV   13h,A
+  - 9453: MOV   A,1Eh
+  - 9455: JB    ACC.7,X947Eh
+  - 9458: JBC   ACC.6,X9470h
+  - 945B: MOV   R4,A
+  - 945C: CLR   C
+  - 945D: MOV   A,10h
+  - 945F: RRC   A
+  - 9460: MOV   10h,A
+  - 9462: MOV   A,11h
+  - 9464: RRC   A
+  - 9465: MOV   11h,A
+  - 9467: MOV   A,12h
+  - 9469: RRC   A
+  - 946A: MOV   12h,A
+  - 946C: DJNZ  R4,X945Ch
+  - 946E: SJMP  X947Eh
+  - 9470: MOV   R4,A
+  - 9471: CLR   C
+  - 9472: MOV   A,11h
+  - 9474: RLC   A
+  - 9475: MOV   11h,A
+  - 9477: MOV   A,10h
+  - 9479: RLC   A
+  - 947A: MOV   10h,A
+  - 947C: DJNZ  R4,X9471h
+  - 947E: MOV   A,10h
+  - 9480: ANL   A,#0FEh
+  - 9482: JZ    X948Dh
+  - 9484: MOV   10h,#01h
+  - 9487: MOV   11h,#0FFh
+  - 948A: MOV   49h,#09h
+  - 948D: JB    21h.2,X9498h
+  - 9490: MOV   A,10h
+  - 9492: ADD   A,#02h
+  - 9494: MOV   10h,A
+  - 9496: SJMP  X94A6h
+  - 9498: CLR   A
+  - 9499: CLR   C
+  - 949A: SUBB  A,11h
+  - 949C: MOV   11h,A
+  - 949E: MOV   A,#02h
+  - 94A0: SUBB  A,10h
+  - 94A2: MOV   10h,A
+  - 94A4: CLR   21h.2
+  - 94A6: MOV   A,1Dh
+  - 94A8: JBC   22h.5,X94AEh
+  - 94AB: JNB   ACC.7,X94B7h
+  - 94AE: MOV   15h,10h
+  - 94B1: MOV   16h,11h
+  - 94B4: LJMP  X9502h
+  - 94B7: JB    ACC.6,X94EFh
+  - 94BA: INC   1Ah
+  - 94BC: MOV   R4,A
+  - 94BD: MOV   A,16h
+  - 94BF: ADD   A,11h
+  - 94C1: MOV   16h,A
+  - 94C3: MOV   A,15h
+  - 94C5: ADDC  A,10h
+  - 94C7: MOV   15h,A
+  - 94C9: MOV   R3,#00h
+  - 94CB: MOV   19h,1Ah
+  - 94CE: CLR   C
+  - 94CF: MOV   A,19h
+  - 94D1: RRC   A
+  - 94D2: MOV   19h,A
+  - 94D4: MOV   A,R3
+  - 94D5: RRC   A
+  - 94D6: MOV   R3,A
+  - 94D7: DJNZ  R4,X94CEh
+  - 94D9: JZ    X94DEh
+  - 94DB: LJMP  X93DBh
+  - 94DE: MOV   R4,1Dh
+  - 94E0: CLR   C
+  - 94E1: MOV   A,15h
+  - 94E3: RRC   A
+  - 94E4: MOV   15h,A
+  - 94E6: MOV   A,16h
+  - 94E8: RRC   A
+  - 94E9: MOV   16h,A
+  - 94EB: DJNZ  R4,X94E0h
+  - 94ED: SJMP  X9502h
+  - 94EF: MOV   A,16h
+  - 94F1: ADD   A,11h
+  - 94F3: MOV   16h,A
+  - 94F5: MOV   A,15h
+  - 94F7: ADDC  A,10h
+  - 94F9: CLR   C
+  - 94FA: RRC   A
+  - 94FB: MOV   15h,A
+  - 94FD: MOV   A,16h
+  - 94FF: RRC   A
+  - 9500: MOV   16h,A
+  - 9502: LCALL X9A55h
+  - 9505: JC    X9534h
+  - 9507: INC   35h
+  - 9509: MOV   A,35h
+  - 950B: JNZ   X950Fh
+  - 950D: INC   34h
+  - 950F: MOV   A,1Dh
+  - 9511: JNB   ACC.6,X9529h
+  - 9514: MOV   16h,11h
+  - 9517: MOV   15h,10h
+  - 951A: LCALL X9A55h
+  - 951D: JC    X9534h
+  - 951F: INC   35h
+  - 9521: MOV   A,35h
+  - 9523: JNZ   X952Fh
+  - 9525: INC   34h
+  - 9527: SJMP  X952Fh
+  - 9529: MOV   15h,#00h
+  - 952C: MOV   16h,#00h
+  - 952F: CLR   22h.6
+  - 9531: LJMP  X93DBh
+  - 9534: LJMP  X93CDh
+  - 9537: MOV   10h,#00h
+  - 953A: MOV   11h,#00h
+  - 953D: MOV   R0,4Ch
+  - 953F: MOV   A,@R0
+  - 9540: ADD   A,#0D0h
+  - 9542: JNC   X9576h
+  - 9544: ADD   A,#0F6h
+  - 9546: JC    X9576h
+  - 9548: ADD   A,#0Ah
+  - 954A: ADD   A,11h
+  - 954C: MOV   11h,A
+  - 954E: CLR   A
+  - 954F: ADDC  A,10h
+  - 9551: MOV   10h,A
+  - 9553: INC   R0
+  - 9554: INC   4Ch
+  - 9556: DEC   4Bh
+  - 9558: DJNZ  R3,X955Eh
+  - 955A: MOV   22h.7,C
+  - 955C: CLR   C
+  - 955D: RET
+  - 955E: MOV   B,#0Ah
+  - 9561: MOV   A,11h
+  - 9563: MUL   AB
+  - 9564: MOV   11h,A
+  - 9566: MOV   A,#0Ah
+  - 9568: XCH   A,B
+  - 956A: XCH   A,10h
+  - 956C: MUL   AB
+  - 956D: ADD   A,10h
+  - 956F: MOV   10h,A
+  - 9571: CLR   A
+  - 9572: ADDC  A,B
+  - 9574: JZ    X953Fh
+  - 9576: SETB  C
+  - 9577: RET
+
+===== replace  V1.3 959E..959E (1 Instr.)  <->  V1.5 96BC..96C0 (3 Instr.) =====
+  - 959E: MOV   TH1,#0DAh
+  + 96BC: MOV   R3,#32h
+  + 96BE: DJNZ  R3,X96BEh
+  + 96C0: MOV   TH1,#0B2h
+
+===== insert  V1.3 95C0..95C0 (0 Instr.)  <->  V1.5 96E2..96F7 (13 Instr.) =====
+  + 96E2: RET
+  + 96E3: MOV   R3,#32h
+  + 96E5: DJNZ  R3,X96E5h
+  + 96E7: MOV   TH1,#0B2h
+  + 96EA: CLR   TF1
+  + 96EC: SETB  TR1
+  + 96EE: MOV   R3,A
+  + 96EF: CLR   C
+  + 96F0: MOVX  A,@DPTR
+  + 96F1: XRL   A,R3
+  + 96F2: JZ    X96F8h
+  + 96F4: JNB   TF1,X96F0h
+  + 96F7: SETB  C
+
+===== replace  V1.3 9628..9628 (1 Instr.)  <->  V1.5 9760..9760 (1 Instr.) =====
+  - 9628: ANL   A,#0Fh
+  + 9760: ANL   A,#1Fh
+
+===== insert  V1.3 962B..962B (0 Instr.)  <->  V1.5 9763..9769 (4 Instr.) =====
+  + 9763: JZ    X977Ah
+  + 9765: ADD   A,#0E7h
+  + 9767: JC    X977Ah
+  + 9769: MOV   A,R6
+
+===== replace  V1.3 9643..9649 (4 Instr.)  <->  V1.5 9782..9786 (3 Instr.) =====
+  - 9643: JZ    X96A5h
+  - 9645: MOV   A,67h
+  - 9647: ANL   A,#0F0h
+  - 9649: SWAP  A
+  + 9782: JZ    X97E0h
+  + 9784: MOV   A,5Eh
+  + 9786: ANL   A,#1Fh
+
+===== replace  V1.3 964E..9653 (3 Instr.)  <->  V1.5 978C..978E (2 Instr.) =====
+  - 964E: JNC   X9656h
+  - 9650: ANL   67h,#0Fh
+  - 9653: ORL   67h,#10h
+  + 978C: JNC   X9791h
+  + 978E: MOV   5Eh,#01h
+
+===== replace  V1.3 96C3..96C9 (4 Instr.)  <->  V1.5 97FE..9802 (3 Instr.) =====
+  - 96C3: JNC   X96F6h
+  - 96C5: MOV   A,67h
+  - 96C7: ANL   A,#0F0h
+  - 96C9: SWAP  A
+  + 97FE: JNC   X9830h
+  + 9800: MOV   A,5Eh
+  + 9802: ANL   A,#1Fh
+
+===== replace  V1.3 96F8..96F8 (1 Instr.)  <->  V1.5 9832..9832 (1 Instr.) =====
+  - 96F8: ANL   A,#0Fh
+  + 9832: ANL   A,#1Fh
+
+===== replace  V1.3 9700..9700 (1 Instr.)  <->  V1.5 983A..983A (1 Instr.) =====
+  - 9700: XRL   A,#0Fh
+  + 983A: XRL   A,#18h
+
+===== replace  V1.3 971F..971F (1 Instr.)  <->  V1.5 9859..9859 (1 Instr.) =====
+  - 971F: ANL   A,#0Fh
+  + 9859: ANL   A,#1Fh
+
+===== replace  V1.3 977A..977E (3 Instr.)  <->  V1.5 98B4..98B6 (2 Instr.) =====
+  - 977A: MOV   A,67h
+  - 977C: ANL   A,#0F0h
+  - 977E: SWAP  A
+  + 98B4: MOV   A,5Eh
+  + 98B6: ANL   A,#1Fh
+
+===== replace  V1.3 979E..97A5 (4 Instr.)  <->  V1.5 98D7..98D7 (1 Instr.) =====
+  - 979E: MOV   TH1,#0ECh
+  - 97A1: CLR   TF1
+  - 97A3: SETB  TR1
+  - 97A5: JNB   TF1,X97A5h
+  + 98D7: LCALL X96E3h
+
+===== replace  V1.3 97B2..97B2 (1 Instr.)  <->  V1.5 98E4..98E4 (1 Instr.) =====
+  - 97B2: MOV   R6,#8Fh
+  + 98E4: MOV   R6,#98h
+
+===== replace  V1.3 97D2..97D2 (1 Instr.)  <->  V1.5 9904..9904 (1 Instr.) =====
+  - 97D2: ANL   A,#0Fh
+  + 9904: ANL   A,#1Fh
+
+===== replace  V1.3 97F8..97FC (3 Instr.)  <->  V1.5 992A..992C (2 Instr.) =====
+  - 97F8: MOV   A,67h
+  - 97FA: ANL   A,#0F0h
+  - 97FC: SWAP  A
+  + 992A: MOV   A,5Eh
+  + 992C: ANL   A,#1Fh
+
+===== replace  V1.3 98D7..98DE (4 Instr.)  <->  V1.5 9A08..9A0D (3 Instr.) =====
+  - 98D7: JB    21h.0,X98DFh
+  - 98DA: MOV   A,67h
+  - 98DC: ANL   A,#0F0h
+  - 98DE: SWAP  A
+  + 9A08: JB    21h.0,X9A0Fh
+  + 9A0B: MOV   A,5Eh
+  + 9A0D: ANL   A,#1Fh
+
+===== replace  V1.3 9913..991A (4 Instr.)  <->  V1.5 9A43..9A48 (3 Instr.) =====
+  - 9913: JB    21h.0,X991Bh
+  - 9916: MOV   A,67h
+  - 9918: ANL   A,#0F0h
+  - 991A: SWAP  A
+  + 9A43: JB    21h.0,X9A4Ah
+  + 9A46: MOV   A,5Eh
+  + 9A48: ANL   A,#1Fh
+
+===== replace  V1.3 991F..991F (1 Instr.)  <->  V1.5 9A4E..9A4E (1 Instr.) =====
+  - 991F: JB    20h.1,X9946h
+  + 9A4E: JB    20h.1,X9A74h
+
+===== replace  V1.3 992D..9933 (4 Instr.)  <->  V1.5 9A5C..9A60 (3 Instr.) =====
+  - 992D: JNC   X993Dh
+  - 992F: MOV   A,67h
+  - 9931: ANL   A,#0F0h
+  - 9933: SWAP  A
+  + 9A5C: JNC   X9A6Bh
+  + 9A5E: MOV   A,5Eh
+  + 9A60: ANL   A,#1Fh
+
+===== replace  V1.3 9983..9987 (3 Instr.)  <->  V1.5 9AB1..9AB3 (2 Instr.) =====
+  - 9983: MOV   A,67h
+  - 9985: ANL   A,#0F0h
+  - 9987: SWAP  A
+  + 9AB1: MOV   A,5Eh
+  + 9AB3: ANL   A,#1Fh
+
+===== replace  V1.3 9ACC..9AD0 (3 Instr.)  <->  V1.5 9BF9..9BFB (2 Instr.) =====
+  - 9ACC: MOV   A,67h
+  - 9ACE: ANL   A,#0F0h
+  - 9AD0: SWAP  A
+  + 9BF9: MOV   A,5Eh
+  + 9BFB: ANL   A,#1Fh
+
+===== replace  V1.3 9AEE..9AF2 (3 Instr.)  <->  V1.5 9C1A..9C1C (2 Instr.) =====
+  - 9AEE: MOV   A,67h
+  - 9AF0: ANL   A,#0F0h
+  - 9AF2: SWAP  A
+  + 9C1A: MOV   A,5Eh
+  + 9C1C: ANL   A,#1Fh
+
+===== insert  V1.3 9AFE..9AFE (0 Instr.)  <->  V1.5 9C29..9EA7 (318 Instr.) =====
+  + 9C29: RET
+  + 9C2A: MOV   R2,#14h
+  + 9C2C: LCALL X5F9Ah
+  + 9C2F: LCALL X3A40h
+  + 9C32: MOV   A,4Bh
+  + 9C34: JNB   ACC.6,X9C42h
+  + 9C37: ANL   A,#3Fh
+  + 9C39: DEC   A
+  + 9C3A: ADD   A,4Ch
+  + 9C3C: MOV   R0,A
+  + 9C3D: MOV   @R0,#0Ah
+  + 9C3F: ANL   4Bh,#9Fh
+  + 9C42: SETB  22h.6
+  + 9C44: MOV   R3,#01h
+  + 9C46: LCALL X9E68h
+  + 9C49: JC    X9CC2h
+  + 9C4B: MOV   A,11h
+  + 9C4D: ADD   A,#0FAh
+  + 9C4F: JC    X9CC2h
+  + 9C51: ADD   A,#02h
+  + 9C53: JNC   X9CC2h
+  + 9C55: MOV   R3,11h
+  + 9C57: LCALL X9E68h
+  + 9C5A: JC    X9CC2h
+  + 9C5C: MOV   A,11h
+  + 9C5E: CJNE  A,#02h,X9CC2h
+  + 9C61: MOV   R4,#06h
+  + 9C63: MOV   A,10h
+  + 9C65: JB    22h.7,X9C75h
+  + 9C68: DEC   R4
+  + 9C69: RLC   A
+  + 9C6A: JC    X9C75h
+  + 9C6C: DJNZ  R4,X9C69h
+  + 9C6E: CJNE  A,#80h,X9CC2h
+  + 9C71: MOV   A,#41h
+  + 9C73: SJMP  X9C7Dh
+  + 9C75: JNZ   X9CC2h
+  + 9C77: MOV   A,R4
+  + 9C78: DEC   A
+  + 9C79: JNZ   X9C7Dh
+  + 9C7B: SETB  ACC.7
+  + 9C7D: MOV   1Dh,A
+  + 9C7F: MOV   A,11h
+  + 9C81: DEC   A
+  + 9C82: MOV   14h,A
+  + 9C84: MOV   13h,10h
+  + 9C87: MOV   A,@R0
+  + 9C88: MOV   18h,A
+  + 9C8A: INC   4Ch
+  + 9C8C: DEC   4Bh
+  + 9C8E: ADD   A,#0EFh
+  + 9C90: JC    X9CC2h
+  + 9C92: ADD   A,#09h
+  + 9C94: JNC   X9CC2h
+  + 9C96: MOV   A,@R0
+  + 9C97: CJNE  A,#0Ah,X9C9Eh
+  + 9C9A: MOV   A,#80h
+  + 9C9C: SJMP  X9CABh
+  + 9C9E: JC    X9CA4h
+  + 9CA0: SUBB  A,#0Ah
+  + 9CA2: SJMP  X9CABh
+  + 9CA4: CLR   C
+  + 9CA5: MOV   R3,A
+  + 9CA6: MOV   A,#0Ah
+  + 9CA8: SUBB  A,R3
+  + 9CA9: SETB  ACC.6
+  + 9CAB: MOV   1Eh,A
+  + 9CAD: CLR   A
+  + 9CAE: SETB  22h.5
+  + 9CB0: MOV   49h,#00h
+  + 9CB3: MOV   40h,#0C0h
+  + 9CB6: LCALL X9C1Ah
+  + 9CB9: CLR   A
+  + 9CBA: MOV   34h,A
+  + 9CBC: MOV   35h,A
+  + 9CBE: MOV   1Ah,A
+  + 9CC0: SJMP  X9CD0h
+  + 9CC2: MOV   49h,#08h
+  + 9CC5: SJMP  X9CCAh
+  + 9CCA: LJMP  X95E4h
+  + 9CCD: LJMP  X95E4h
+  + 9CD0: LCALL X526Bh
+  + 9CD3: JNB   ACC.0,X9CCDh
+  + 9CD6: JB    22h.7,X9CECh
+  + 9CD9: MOV   A,13h
+  + 9CDB: JNZ   X9CECh
+  + 9CDD: MOV   A,14h
+  + 9CDF: ADD   A,#0FDh
+  + 9CE1: JC    X9CECh
+  + 9CE3: MOV   R0,4Ch
+  + 9CE5: MOV   A,@R0
+  + 9CE6: XRL   A,18h
+  + 9CE8: JNZ   X9CC2h
+  + 9CEA: SJMP  X9CCDh
+  + 9CEC: MOV   A,4Bh
+  + 9CEE: ANL   A,#3Fh
+  + 9CF0: ADD   A,#0FDh
+  + 9CF2: JC    X9D47h
+  + 9CF4: MOV   A,0Ch
+  + 9CF6: JNB   ACC.0,X9D23h
+  + 9CF9: JB    22h.7,X9D23h
+  + 9CFC: MOV   A,13h
+  + 9CFE: JNZ   X9D23h
+  + 9D00: MOV   A,14h
+  + 9D02: ADD   A,#0E0h
+  + 9D04: JC    X9D23h
+  + 9D06: MOV   10h,15h
+  + 9D09: MOV   11h,16h
+  + 9D0C: MOV   15h,#0C8h
+  + 9D0F: MOV   A,4Bh
+  + 9D11: ANL   A,#1Fh
+  + 9D13: MOV   R3,A
+  + 9D14: MOV   A,14h
+  + 9D16: CLR   C
+  + 9D17: SUBB  A,R3
+  + 9D18: MOV   16h,A
+  + 9D1A: LCALL X60F6h
+  + 9D1D: MOV   15h,10h
+  + 9D20: MOV   16h,11h
+  + 9D23: LCALL X68F0h
+  + 9D26: MOV   1Fh,4Bh
+  + 9D29: MOV   TH0,#00h
+  + 9D2C: CLR   TF0
+  + 9D2E: JB    P3.2,X9D39h
+  + 9D31: LCALL X610Eh
+  + 9D34: MOV   A,4Bh
+  + 9D36: CJNE  A,1Fh,X9D41h
+  + 9D39: LCALL X526Bh
+  + 9D3C: JB    ACC.0,X9D2Eh
+  + 9D3F: SJMP  X9CCDh
+  + 9D41: MOV   4Ch,#80h
+  + 9D44: LJMP  X9CD0h
+  + 9D47: MOV   R0,4Ch
+  + 9D49: MOV   A,@R0
+  + 9D4A: JB    ACC.7,X9D57h
+  + 9D4D: MOV   10h,A
+  + 9D4F: INC   R0
+  + 9D50: MOV   11h,@R0
+  + 9D52: CLR   21h.2
+  + 9D54: DEC   R0
+  + 9D55: SJMP  X9D64h
+  + 9D57: CLR   A
+  + 9D58: CLR   C
+  + 9D59: INC   R0
+  + 9D5A: SUBB  A,@R0
+  + 9D5B: MOV   11h,A
+  + 9D5D: DEC   R0
+  + 9D5E: CLR   A
+  + 9D5F: SUBB  A,@R0
+  + 9D60: MOV   10h,A
+  + 9D62: SETB  21h.2
+  + 9D64: MOV   A,18h
+  + 9D66: ADD   A,@R0
+  + 9D67: INC   R0
+  + 9D68: ADD   A,@R0
+  + 9D69: MOV   18h,A
+  + 9D6B: INC   4Ch
+  + 9D6D: DEC   4Bh
+  + 9D6F: INC   4Ch
+  + 9D71: DEC   4Bh
+  + 9D73: CLR   C
+  + 9D74: MOV   A,14h
+  + 9D76: SUBB  A,#02h
+  + 9D78: MOV   14h,A
+  + 9D7A: MOV   A,13h
+  + 9D7C: SUBB  A,#00h
+  + 9D7E: MOV   13h,A
+  + 9D80: JNC   X9D84h
+  + 9D82: CLR   22h.7
+  + 9D84: MOV   A,1Eh
+  + 9D86: JB    ACC.7,X9DAFh
+  + 9D89: JBC   ACC.6,X9DA1h
+  + 9D8C: MOV   R4,A
+  + 9D8D: CLR   C
+  + 9D8E: MOV   A,10h
+  + 9D90: RRC   A
+  + 9D91: MOV   10h,A
+  + 9D93: MOV   A,11h
+  + 9D95: RRC   A
+  + 9D96: MOV   11h,A
+  + 9D98: MOV   A,12h
+  + 9D9A: RRC   A
+  + 9D9B: MOV   12h,A
+  + 9D9D: DJNZ  R4,X9D8Dh
+  + 9D9F: SJMP  X9DAFh
+  + 9DA1: MOV   R4,A
+  + 9DA2: CLR   C
+  + 9DA3: MOV   A,11h
+  + 9DA5: RLC   A
+  + 9DA6: MOV   11h,A
+  + 9DA8: MOV   A,10h
+  + 9DAA: RLC   A
+  + 9DAB: MOV   10h,A
+  + 9DAD: DJNZ  R4,X9DA2h
+  + 9DAF: MOV   A,10h
+  + 9DB1: ANL   A,#0FEh
+  + 9DB3: JZ    X9DBEh
+  + 9DB5: MOV   10h,#01h
+  + 9DB8: MOV   11h,#0FFh
+  + 9DBB: MOV   49h,#09h
+  + 9DBE: JB    21h.2,X9DC9h
+  + 9DC1: MOV   A,10h
+  + 9DC3: ADD   A,#02h
+  + 9DC5: MOV   10h,A
+  + 9DC7: SJMP  X9DD7h
+  + 9DC9: CLR   A
+  + 9DCA: CLR   C
+  + 9DCB: SUBB  A,11h
+  + 9DCD: MOV   11h,A
+  + 9DCF: MOV   A,#02h
+  + 9DD1: SUBB  A,10h
+  + 9DD3: MOV   10h,A
+  + 9DD5: CLR   21h.2
+  + 9DD7: MOV   A,1Dh
+  + 9DD9: JBC   22h.5,X9DDFh
+  + 9DDC: JNB   ACC.7,X9DE8h
+  + 9DDF: MOV   15h,10h
+  + 9DE2: MOV   16h,11h
+  + 9DE5: LJMP  X9E33h
+  + 9DE8: JB    ACC.6,X9E20h
+  + 9DEB: INC   1Ah
+  + 9DED: MOV   R4,A
+  + 9DEE: MOV   A,16h
+  + 9DF0: ADD   A,11h
+  + 9DF2: MOV   16h,A
+  + 9DF4: MOV   A,15h
+  + 9DF6: ADDC  A,10h
+  + 9DF8: MOV   15h,A
+  + 9DFA: MOV   R3,#00h
+  + 9DFC: MOV   19h,1Ah
+  + 9DFF: CLR   C
+  + 9E00: MOV   A,19h
+  + 9E02: RRC   A
+  + 9E03: MOV   19h,A
+  + 9E05: MOV   A,R3
+  + 9E06: RRC   A
+  + 9E07: MOV   R3,A
+  + 9E08: DJNZ  R4,X9DFFh
+  + 9E0A: JZ    X9E0Fh
+  + 9E0C: LJMP  X9CD0h
+  + 9E0F: MOV   R4,1Dh
+  + 9E11: CLR   C
+  + 9E12: MOV   A,15h
+  + 9E14: RRC   A
+  + 9E15: MOV   15h,A
+  + 9E17: MOV   A,16h
+  + 9E19: RRC   A
+  + 9E1A: MOV   16h,A
+  + 9E1C: DJNZ  R4,X9E11h
+  + 9E1E: SJMP  X9E33h
+  + 9E20: MOV   A,16h
+  + 9E22: ADD   A,11h
+  + 9E24: MOV   16h,A
+  + 9E26: MOV   A,15h
+  + 9E28: ADDC  A,10h
+  + 9E2A: CLR   C
+  + 9E2B: RRC   A
+  + 9E2C: MOV   15h,A
+  + 9E2E: MOV   A,16h
+  + 9E30: RRC   A
+  + 9E31: MOV   16h,A
+  + 9E33: LCALL X9B82h
+  + 9E36: JC    X9E65h
+  + 9E38: INC   35h
+  + 9E3A: MOV   A,35h
+  + 9E3C: JNZ   X9E40h
+  + 9E3E: INC   34h
+  + 9E40: MOV   A,1Dh
+  + 9E42: JNB   ACC.6,X9E5Ah
+  + 9E45: MOV   16h,11h
+  + 9E48: MOV   15h,10h
+  + 9E4B: LCALL X9B82h
+  + 9E4E: JC    X9E65h
+  + 9E50: INC   35h
+  + 9E52: MOV   A,35h
+  + 9E54: JNZ   X9E60h
+  + 9E56: INC   34h
+  + 9E58: SJMP  X9E60h
+  + 9E5A: MOV   15h,#00h
+  + 9E5D: MOV   16h,#00h
+  + 9E60: CLR   22h.6
+  + 9E62: LJMP  X9CD0h
+  + 9E65: LJMP  X9CC2h
+  + 9E68: MOV   10h,#00h
+  + 9E6B: MOV   11h,#00h
+  + 9E6E: MOV   R0,4Ch
+  + 9E70: MOV   A,@R0
+  + 9E71: ADD   A,#0D0h
+  + 9E73: JNC   X9EA7h
+  + 9E75: ADD   A,#0F6h
+  + 9E77: JC    X9EA7h
+  + 9E79: ADD   A,#0Ah
+  + 9E7B: ADD   A,11h
+  + 9E7D: MOV   11h,A
+  + 9E7F: CLR   A
+  + 9E80: ADDC  A,10h
+  + 9E82: MOV   10h,A
+  + 9E84: INC   R0
+  + 9E85: INC   4Ch
+  + 9E87: DEC   4Bh
+  + 9E89: DJNZ  R3,X9E8Fh
+  + 9E8B: MOV   22h.7,C
+  + 9E8D: CLR   C
+  + 9E8E: RET
+  + 9E8F: MOV   B,#0Ah
+  + 9E92: MOV   A,11h
+  + 9E94: MUL   AB
+  + 9E95: MOV   11h,A
+  + 9E97: MOV   A,#0Ah
+  + 9E99: XCH   A,B
+  + 9E9B: XCH   A,10h
+  + 9E9D: MUL   AB
+  + 9E9E: ADD   A,10h
+  + 9EA0: MOV   10h,A
+  + 9EA2: CLR   A
+  + 9EA3: ADDC  A,B
+  + 9EA5: JZ    X9E70h
+  + 9EA7: SETB  C
+
+===== replace  V1.3 9BD6..9BD6 (1 Instr.)  <->  V1.5 ABC6..ABC6 (1 Instr.) =====
+  - 9BD6: SJMP  X9C38h
+  + ABC6: SJMP  XAC2Bh
+
+===== replace  V1.3 9BEC..9BEC (1 Instr.)  <->  V1.5 ABDC..ABDC (1 Instr.) =====
+  - 9BEC: AJMP  X9C6Ah
+  + ABDC: AJMP  XAC5Dh
+
+===== replace  V1.3 9BF1..9BF1 (1 Instr.)  <->  V1.5 ABE1..ABE1 (1 Instr.) =====
+  - 9BF1: RL    A
+  + ABE1: RR    A
+
+===== insert  V1.3 9BF4..9BF4 (0 Instr.)  <->  V1.5 ABE4..ABE4 (1 Instr.) =====
+  + ABE4: MOV   C,ACC.7
+
+===== replace  V1.3 9BF9..9BFF (3 Instr.)  <->  V1.5 ABEB..ABF1 (3 Instr.) =====
+  - 9BF9: JNB   TF1,X9C28h
+  - 9BFC: MOV   TH1,#0FEh
+  - 9BFF: MOV   TL1,#0Ch
+  + ABEB: JNB   TF1,XAC1Bh
+  + ABEE: MOV   TH1,#0FDh
+  + ABF1: MOV   TL1,A
+
+===== replace  V1.3 9C04..9C0D (6 Instr.)  <->  V1.5 ABF5..AC01 (8 Instr.) =====
+  - 9C04: MOV   A,@R0
+  - 9C05: MOV   B,#1Fh
+  - 9C08: MUL   AB
+  - 9C09: MOV   A,B
+  - 9C0B: ADD   A,#46h
+  - 9C0D: MOV   B,#0Ah
+  + ABF5: MOV   R0,#97h
+  + ABF7: MOV   R1,#00h
+  + ABF9: JNC   XAC01h
+  + ABFB: MOV   R0,#94h
+  + ABFD: MOV   R1,#44h
+  + ABFF: CPL   A
+  + AC00: INC   A
+  + AC01: MOV   B,#64h
+
+===== delete  V1.3 9C11..9C11 (1 Instr.)  <->  V1.5 AC05..AC05 (0 Instr.) =====
+  - 9C11: XCH   A,B
+
+===== replace  V1.3 9C19..9C19 (1 Instr.)  <->  V1.5 AC0B..AC13 (7 Instr.) =====
+  - 9C19: ORL   A,#90h
+  + AC0B: SWAP  A
+  + AC0C: ORL   A,B
+  + AC0E: ADD   A,R1
+  + AC0F: DA    A
+  + AC10: MOV   5Bh,A
+  + AC12: MOV   A,R3
+  + AC13: ADDC  A,R0
+
+===== delete  V1.3 9C1D..9C21 (4 Instr.)  <->  V1.5 AC16..AC16 (0 Instr.) =====
+  - 9C1D: MOV   A,B
+  - 9C1F: SWAP  A
+  - 9C20: ORL   A,R3
+  - 9C21: MOV   5Bh,A
+
+===== replace  V1.3 9C6C..9C6C (1 Instr.)  <->  V1.5 AC5F..AC5F (1 Instr.) =====
+  - 9C6C: JNB   20h.1,X9CBEh
+  + AC5F: JNB   20h.1,XACB9h
+
+===== replace  V1.3 9C7F..9C85 (4 Instr.)  <->  V1.5 AC72..AC78 (4 Instr.) =====
+  - 9C7F: SJMP  X9CBEh
+  - 9C81: SJMP  X9CBEh
+  - 9C83: SJMP  X9CBEh
+  - 9C85: SJMP  X9CBEh
+  + AC72: SJMP  XACB9h
+  + AC74: SJMP  XACB9h
+  + AC76: SJMP  XACB9h
+  + AC78: SJMP  XACB9h
+
+===== replace  V1.3 9C8B..9C8D (2 Instr.)  <->  V1.5 AC7E..AC80 (2 Instr.) =====
+  - 9C8B: SJMP  X9CA9h
+  - 9C8D: SJMP  X9CB5h
+  + AC7E: SJMP  XACA4h
+  + AC80: SJMP  XACB0h
+
+===== replace  V1.3 9C94..9C94 (1 Instr.)  <->  V1.5 AC87..AC87 (1 Instr.) =====
+  - 9C94: SJMP  X9CBEh
+  + AC87: SJMP  XACB9h
+
+===== replace  V1.3 9CA2..9CA2 (1 Instr.)  <->  V1.5 AC95..AC9C (4 Instr.) =====
+  - 9CA2: SJMP  X9CBEh
+  + AC95: SJMP  XACB9h
+  + AC97: SETB  2Dh.0
+  + AC99: MOV   0Bh,#41h
+  + AC9C: LCALL X3420h
+
+===== replace  V1.3 9CE0..9CE0 (1 Instr.)  <->  V1.5 ACDB..ACDB (1 Instr.) =====
+  - 9CE0: MOV   66h,#50h
+  + ACDB: MOV   66h,#32h
+
+===== replace  V1.3 9CF8..9CFA (2 Instr.)  <->  V1.5 ACF3..ACF5 (2 Instr.) =====
+  - 9CF8: SJMP  X9D2Ch
+  - 9CFA: SJMP  X9D46h
+  + ACF3: SJMP  XAD2Ah
+  + ACF5: SJMP  XAD44h
+
+===== insert  V1.3 9D2A..9D2A (0 Instr.)  <->  V1.5 AD25..AD25 (1 Instr.) =====
+  + AD25: MOV   6Ah,#01h
+
+===== replace  V1.3 9D5D..9D60 (2 Instr.)  <->  V1.5 AD5B..AD5B (1 Instr.) =====
+  - 9D5D: MOV   5Ch,#00h
+  - 9D60: MOV   5Dh,#07h
+  + AD5B: MOV   5Ch,#07h
+
+===== replace  V1.3 9D82..9D85 (2 Instr.)  <->  V1.5 AD7D..AD7D (1 Instr.) =====
+  - 9D82: MOV   5Ch,#00h
+  - 9D85: MOV   5Dh,#28h
+  + AD7D: MOV   5Ch,#1Ch
+
+===== replace  V1.3 9DA7..9DAA (2 Instr.)  <->  V1.5 AD9F..AD9F (1 Instr.) =====
+  - 9DA7: MOV   5Eh,#22h
+  - 9DAA: MOV   5Fh,#00h
+  + AD9F: MOV   5Dh,#0C8h
+
+===== replace  V1.3 9DC5..9DC5 (1 Instr.)  <->  V1.5 ADBA..ADBA (1 Instr.) =====
+  - 9DC5: SJMP  X9E36h
+  + ADBA: SJMP  XAE2Ah
+
+===== replace  V1.3 9DDC..9DDC (1 Instr.)  <->  V1.5 ADD1..ADD1 (1 Instr.) =====
+  - 9DDC: MOV   66h,#21h
+  + ADD1: MOV   66h,#15h
+
+===== delete  V1.3 9DE2..9DE2 (1 Instr.)  <->  V1.5 ADD7..ADD7 (0 Instr.) =====
+  - 9DE2: MOV   5Dh,#00h
+
+===== replace  V1.3 9DEB..9DEB (1 Instr.)  <->  V1.5 ADDD..ADDD (1 Instr.) =====
+  - 9DEB: SJMP  X9E36h
+  + ADDD: SJMP  XAE2Ah
+
+===== insert  V1.3 9E12..9E12 (0 Instr.)  <->  V1.5 AE04..AE04 (1 Instr.) =====
+  + AE04: SETB  2Dh.5
+
+===== insert  V1.3 AC47..AC47 (0 Instr.)  <->  V1.5 AF3B..B2F1 (429 Instr.) =====
+  + AF3B: JB    2Eh.1,XAF4Dh
+  + AF3E: SETB  2Eh.1
+  + AF40: MOV   45h,#01h
+  + AF43: MOV   46h,#00h
+  + AF46: MOV   47h,#00h
+  + AF49: MOV   A,#20h
+  + AF4B: SJMP  XAFC0h
+  + AF4D: MOV   A,45h
+  + AF4F: CJNE  A,#01h,XAF60h
+  + AF52: MOV   45h,#02h
+  + AF55: MOV   A,#20h
+  + AF57: JB    25h.0,XAF77h
+  + AF5A: MOV   A,#40h
+  + AF5C: CLR   2Eh.2
+  + AF5E: SJMP  XAF77h
+  + AF60: CJNE  A,#02h,XAF6Fh
+  + AF63: JNB   25h.0,XAF72h
+  + AF66: MOV   45h,#03h
+  + AF69: MOV   A,#40h
+  + AF6B: CLR   2Eh.2
+  + AF6D: SJMP  XAF77h
+  + AF6F: CJNE  A,#03h,XAF7Ah
+  + AF72: MOV   45h,#10h
+  + AF75: MOV   A,#9Ah
+  + AF77: LJMP  XAFC0h
+  + AF7A: ANL   A,#70h
+  + AF7C: CJNE  A,#10h,XAF8Ch
+  + AF7F: MOV   A,45h
+  + AF81: ANL   A,#0Fh
+  + AF83: MOV   47h,A
+  + AF85: MOV   45h,#20h
+  + AF88: MOV   A,#9Ah
+  + AF8A: SJMP  XAFC0h
+  + AF8C: CJNE  A,#20h,XAF9Fh
+  + AF8F: MOV   A,45h
+  + AF91: MOV   C,ACC.1
+  + AF93: CLR   A
+  + AF94: MOV   ACC.4,C
+  + AF96: ORL   46h,A
+  + AF98: MOV   45h,#30h
+  + AF9B: MOV   A,#9Ah
+  + AF9D: SJMP  XAFC0h
+  + AF9F: CJNE  A,#30h,XAFAFh
+  + AFA2: MOV   A,45h
+  + AFA4: ANL   A,#03h
+  + AFA6: ORL   46h,A
+  + AFA8: MOV   45h,#40h
+  + AFAB: MOV   A,#9Ah
+  + AFAD: SJMP  XAFC0h
+  + AFAF: CJNE  A,#40h,XAFCDh
+  + AFB2: MOV   A,45h
+  + AFB4: MOV   C,ACC.1
+  + AFB6: CLR   A
+  + AFB7: MOV   ACC.5,C
+  + AFB9: ORL   46h,A
+  + AFBB: MOV   45h,#50h
+  + AFBE: MOV   A,#9Ah
+  + AFC0: MOV   TH1,#00h
+  + AFC3: CLR   TF1
+  + AFC5: MOV   09h,A
+  + AFC7: SETB  28h.6
+  + AFC9: MOV   A,45h
+  + AFCB: SETB  C
+  + AFCC: RET
+  + AFCD: MOV   A,45h
+  + AFCF: MOV   C,ACC.1
+  + AFD1: CLR   A
+  + AFD2: MOV   ACC.6,C
+  + AFD4: ORL   46h,A
+  + AFD6: MOV   A,47h
+  + AFD8: DEC   A
+  + AFD9: ADD   A,#24h
+  + AFDB: MOV   R3,A
+  + AFDC: MOV   A,46h
+  + AFDE: ANL   A,#03h
+  + AFE0: DEC   A
+  + AFE1: MOV   B,#09h
+  + AFE4: MUL   AB
+  + AFE5: ADD   A,R3
+  + AFE6: MOV   R3,A
+  + AFE7: MOV   A,46h
+  + AFE9: MOV   C,ACC.4
+  + AFEB: CLR   A
+  + AFEC: JNC   XAFF0h
+  + AFEE: MOV   A,#1Bh
+  + AFF0: ADD   A,R3
+  + AFF1: MOV   R3,A
+  + AFF2: MOV   A,46h
+  + AFF4: MOV   C,ACC.6
+  + AFF6: CLR   A
+  + AFF7: JNC   XAFFBh
+  + AFF9: MOV   A,#6Ch
+  + AFFB: ADD   A,R3
+  + AFFC: MOV   R3,A
+  + AFFD: MOV   A,46h
+  + AFFF: MOV   C,ACC.5
+  + B001: CLR   A
+  + B002: JNC   XB006h
+  + B004: MOV   A,#36h
+  + B006: ADD   A,R3
+  + B007: MOV   R3,A
+  + B008: XRL   A,68h
+  + B00A: JZ    XB010h
+  + B00C: MOV   68h,R3
+  + B00E: SETB  29h.5
+  + B010: MOV   A,46h
+  + B012: MOV   09h,#00h
+  + B015: CLR   28h.6
+  + B017: CLR   2Eh.1
+  + B019: SETB  C
+  + B01A: RET
+  + B01B: MOV   22h.7,C
+  + B01D: MOV   A,45h
+  + B01F: ANL   A,#0F0h
+  + B021: SWAP  A
+  + B022: RL    A
+  + B023: MOV   DPTR,#B027h
+  + B026: JMP   @A+DPTR
+  + B027: SJMP  XB033h
+  + B029: SJMP  XB041h
+  + B02B: SJMP  XB056h
+  + B02D: SJMP  XB066h
+  + B02F: SJMP  XB094h
+  + B031: SJMP  XB0A1h
+  + B033: MOV   A,45h
+  + B035: JNB   ACC.0,XB03Eh
+  + B038: LCALL XB2CEh
+  + B03B: MOV   45h,#01h
+  + B03E: MOV   A,45h
+  + B040: RET
+  + B041: MOV   A,45h
+  + B043: JBC   22h.7,XB04Dh
+  + B046: INC   A
+  + B047: CJNE  A,#1Ah,XB052h
+  + B04A: DEC   A
+  + B04B: SJMP  XB052h
+  + B04D: DEC   A
+  + B04E: CJNE  A,#10h,XB052h
+  + B051: INC   A
+  + B052: MOV   45h,A
+  + B054: SJMP  XB0ACh
+  + B056: MOV   A,45h
+  + B058: MOV   45h,#21h
+  + B05B: JB    25h.0,XB0ACh
+  + B05E: CJNE  A,#21h,XB0ACh
+  + B061: MOV   45h,#22h
+  + B064: SJMP  XB0ACh
+  + B066: MOV   A,45h
+  + B068: JBC   22h.7,XB07Bh
+  + B06B: INC   A
+  + B06C: CJNE  A,#34h,XB090h
+  + B06F: MOV   A,46h
+  + B071: MOV   C,ACC.4
+  + B073: MOV   A,#31h
+  + B075: JNC   XB090h
+  + B077: MOV   A,#32h
+  + B079: SJMP  XB090h
+  + B07B: MOV   A,46h
+  + B07D: MOV   C,ACC.4
+  + B07F: MOV   A,45h
+  + B081: DEC   A
+  + B082: JC    XB08Bh
+  + B084: CJNE  A,#30h,XB090h
+  + B087: MOV   A,#33h
+  + B089: SJMP  XB090h
+  + B08B: CJNE  A,#31h,XB090h
+  + B08E: MOV   A,#33h
+  + B090: MOV   45h,A
+  + B092: SJMP  XB0ACh
+  + B094: MOV   A,45h
+  + B096: MOV   45h,#41h
+  + B099: CJNE  A,#41h,XB0ACh
+  + B09C: MOV   45h,#42h
+  + B09F: SJMP  XB0ACh
+  + B0A1: MOV   A,45h
+  + B0A3: MOV   45h,#51h
+  + B0A6: CJNE  A,#51h,XB0ACh
+  + B0A9: MOV   45h,#52h
+  + B0AC: MOV   TH1,#00h
+  + B0AF: CLR   TF1
+  + B0B1: MOV   09h,#9Ah
+  + B0B4: SETB  28h.6
+  + B0B6: MOV   A,45h
+  + B0B8: SETB  C
+  + B0B9: RET
+  + B0BA: MOV   R7,A
+  + B0BB: LCALL X3A40h
+  + B0BE: CJNE  R7,#01h,XB0CAh
+  + B0C1: MOV   A,#05h
+  + B0C3: JNB   25h.0,XB0C7h
+  + B0C6: INC   A
+  + B0C7: LJMP  XB1C1h
+  + B0CA: CJNE  R7,#02h,XB10Fh
+  + B0CD: CLR   C
+  + B0CE: LCALL XB21Fh
+  + B0D1: MOV   22h.7,C
+  + B0D3: SETB  22h.4
+  + B0D5: MOV   R1,#40h
+  + B0D7: MOV   A,10h
+  + B0D9: LCALL X3967h
+  + B0DC: MOV   A,11h
+  + B0DE: LCALL X3967h
+  + B0E1: MOV   A,12h
+  + B0E3: LCALL X3967h
+  + B0E6: JNB   22h.7,XB0EFh
+  + B0E9: ORL   41h,#02h
+  + B0EC: ORL   42h,#02h
+  + B0EF: MOV   3Eh,#0D5h
+  + B0F2: CLR   C
+  + B0F3: LCALL XB267h
+  + B0F6: MOV   A,10h
+  + B0F8: MOV   R1,#39h
+  + B0FA: LCALL X3967h
+  + B0FD: MOV   37h,#5Dh
+  + B100: CLR   C
+  + B101: LCALL XB286h
+  + B104: MOV   3Dh,A
+  + B106: MOV   3Bh,#0F8h
+  + B109: MOV   45h,#02h
+  + B10C: LJMP  XB1F8h
+  + B10F: MOV   A,R7
+  + B110: ANL   A,#0F0h
+  + B112: JNZ   XB11Eh
+  + B114: JNB   25h.0,XB11Eh
+  + B117: MOV   45h,#03h
+  + B11A: LCALL X3A96h
+  + B11D: RET
+  + B11E: CJNE  A,#10h,XB154h
+  + B121: CJNE  R7,#10h,XB127h
+  + B124: CLR   C
+  + B125: SJMP  XB12Ch
+  + B127: MOV   A,R7
+  + B128: ANL   A,#0Fh
+  + B12A: DEC   A
+  + B12B: SETB  C
+  + B12C: LCALL XB21Fh
+  + B12F: MOV   22h.7,C
+  + B131: MOV   R1,#3Bh
+  + B133: SETB  22h.4
+  + B135: MOV   A,10h
+  + B137: LCALL X3967h
+  + B13A: MOV   A,11h
+  + B13C: LCALL X3967h
+  + B13F: MOV   A,12h
+  + B141: LCALL X3967h
+  + B144: JNB   22h.7,XB14Fh
+  + B147: ORL   3Ch,#02h
+  + B14A: ORL   30h,#04h
+  + B14D: CLR   22h.7
+  + B14F: MOV   A,#00h
+  + B151: LJMP  XB1C1h
+  + B154: CJNE  A,#20h,XB170h
+  + B157: CJNE  R7,#20h,XB15Dh
+  + B15A: CLR   C
+  + B15B: SJMP  XB161h
+  + B15D: MOV   A,R7
+  + B15E: ANL   A,#03h
+  + B160: SETB  C
+  + B161: LCALL XB267h
+  + B164: MOV   A,10h
+  + B166: MOV   R1,#39h
+  + B168: LCALL X3967h
+  + B16B: MOV   A,#01h
+  + B16D: LJMP  XB1C1h
+  + B170: CJNE  A,#30h,XB18Eh
+  + B173: CJNE  R7,#30h,XB181h
+  + B176: CLR   C
+  + B177: MOV   A,46h
+  + B179: JNB   ACC.4,XB185h
+  + B17C: MOV   R7,#02h
+  + B17E: MOV   45h,#32h
+  + B181: MOV   A,R7
+  + B182: ANL   A,#03h
+  + B184: SETB  C
+  + B185: LCALL XB286h
+  + B188: MOV   39h,A
+  + B18A: MOV   A,#02h
+  + B18C: SJMP  XB1C1h
+  + B18E: CJNE  A,#40h,XB1ADh
+  + B191: CJNE  R7,#40h,XB197h
+  + B194: LCALL XB2B8h
+  + B197: MOV   38h,#55h
+  + B19A: MOV   39h,#54h
+  + B19D: CJNE  R7,#42h,XB1A9h
+  + B1A0: MOV   37h,#55h
+  + B1A3: MOV   38h,#0F0h
+  + B1A6: MOV   39h,#0F0h
+  + B1A9: MOV   A,#03h
+  + B1AB: SJMP  XB1C1h
+  + B1AD: CJNE  R7,#50h,XB1B3h
+  + B1B0: LCALL XB2A3h
+  + B1B3: MOV   R1,#39h
+  + B1B5: MOV   A,#03h
+  + B1B7: CJNE  R7,#52h,XB1BCh
+  + B1BA: MOV   A,#07h
+  + B1BC: LCALL X3967h
+  + B1BF: MOV   A,#04h
+  + B1C1: MOV   B,#05h
+  + B1C4: MUL   AB
+  + B1C5: MOV   R4,A
+  + B1C6: MOV   R3,#05h
+  + B1C8: MOV   R0,#3Eh
+  + B1CA: MOV   A,R4
+  + B1CB: ADD   A,#07h
+  + B1CD: MOVC  A,@A+PC
+  + B1CE: MOV   @R0,A
+  + B1CF: INC   R0
+  + B1D0: INC   R4
+  + B1D1: DJNZ  R3,XB1CAh
+  + B1D3: SJMP  XB1F8h
+  + B1F8: CLR   A
+  + B1F9: LJMP  X38AEh
+  + B1FC: MOV   A,0Ch
+  + B1FE: JNB   ACC.0,XB21Dh
+  + B201: MOV   A,45h
+  + B203: CJNE  A,#01h,XB208h
+  + B206: SJMP  XB20Eh
+  + B208: JNB   25h.0,XB21Dh
+  + B20B: CJNE  A,#02h,XB21Dh
+  + B20E: LCALL XAF3Bh
+  + B211: LCALL XB0BAh
+  + B214: MOV   A,45h
+  + B216: CJNE  A,#03h,XB21Bh
+  + B219: CLR   28h.6
+  + B21B: CLR   C
+  + B21C: RET
+  + B21D: SETB  C
+  + B21E: RET
+  + B21F: JC    XB22Fh
+  + B221: MOV   A,68h
+  + B223: MOV   B,#09h
+  + B226: DIV   AB
+  + B227: MOV   A,B
+  + B229: MOV   R3,A
+  + B22A: ADD   A,#11h
+  + B22C: MOV   45h,A
+  + B22E: MOV   A,R3
+  + B22F: MOV   B,#03h
+  + B232: MUL   AB
+  + B233: MOV   R3,A
+  + B234: ADD   A,#10h
+  + B236: MOVC  A,@A+PC
+  + B237: MOV   12h,A
+  + B239: MOV   A,R3
+  + B23A: ADD   A,#09h
+  + B23C: MOVC  A,@A+PC
+  + B23D: MOV   11h,A
+  + B23F: MOV   A,R3
+  + B240: ADD   A,#02h
+  + B242: MOVC  A,@A+PC
+  + B243: SJMP  XB260h
+  + B260: MOV   C,ACC.7
+  + B262: CLR   ACC.7
+  + B264: MOV   10h,A
+  + B266: RET
+  + B267: JC    XB27Ch
+  + B269: MOV   A,68h
+  + B26B: MOV   B,#09h
+  + B26E: DIV   AB
+  + B26F: CLR   C
+  + B270: SUBB  A,#04h
+  + B272: MOV   B,#03h
+  + B275: DIV   AB
+  + B276: ANL   A,#01h
+  + B278: ADD   A,#21h
+  + B27A: MOV   45h,A
+  + B27C: MOV   10h,#07h
+  + B27F: JNB   ACC.0,XB285h
+  + B282: MOV   10h,#08h
+  + B285: RET
+  + B286: JC    XB29Eh
+  + B288: MOV   A,68h
+  + B28A: MOV   B,#09h
+  + B28D: DIV   AB
+  + B28E: CLR   C
+  + B28F: SUBB  A,#04h
+  + B291: MOV   B,#03h
+  + B294: DIV   AB
+  + B295: MOV   A,B
+  + B297: INC   A
+  + B298: MOV   R3,A
+  + B299: ORL   A,#30h
+  + B29B: MOV   45h,A
+  + B29D: MOV   A,R3
+  + B29E: MOVC  A,@A+PC
+  + B29F: RET
+  + B2A3: MOV   A,68h
+  + B2A5: MOV   B,#09h
+  + B2A8: DIV   AB
+  + B2A9: CLR   C
+  + B2AA: SUBB  A,#04h
+  + B2AC: MOV   B,#0Ch
+  + B2AF: DIV   AB
+  + B2B0: MOV   R7,#51h
+  + B2B2: JZ    XB2B5h
+  + B2B4: INC   R7
+  + B2B5: MOV   45h,R7
+  + B2B7: RET
+  + B2B8: MOV   A,68h
+  + B2BA: MOV   B,#09h
+  + B2BD: DIV   AB
+  + B2BE: CLR   C
+  + B2BF: SUBB  A,#04h
+  + B2C1: MOV   B,#06h
+  + B2C4: DIV   AB
+  + B2C5: RRC   A
+  + B2C6: MOV   R7,#41h
+  + B2C8: JNC   XB2CBh
+  + B2CA: INC   R7
+  + B2CB: MOV   45h,R7
+  + B2CD: RET
+  + B2CE: MOV   09h,#20h
+  + B2D1: SETB  28h.6
+  + B2D3: SETB  29h.5
+  + B2D5: JBC   25h.0,XB2F0h
+  + B2D8: MOV   A,68h
+  + B2DA: MOV   B,#09h
+  + B2DD: DIV   AB
+  + B2DE: CLR   C
+  + B2DF: SUBB  A,#04h
+  + B2E1: MOV   B,#03h
+  + B2E4: DIV   AB
+  + B2E5: JB    ACC.0,XB2ECh
+  + B2E8: SETB  25h.0
+  + B2EA: SJMP  XB2F0h
+  + B2EC: CLR   25h.0
+  + B2EE: SETB  2Eh.2
+  + B2F0: SETB  C
+  + B2F1: RET
+
+===== replace  V1.3 AC4D..AC4D (1 Instr.)  <->  V1.5 B3A7..B3A7 (1 Instr.) =====
+  - AC4D: MOV   40h,#3Dh
+  + B3A7: MOV   40h,#0B5h

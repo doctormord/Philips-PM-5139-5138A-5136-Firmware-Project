@@ -1,114 +1,115 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PM 5139 — Simulator der Originalfirmware</title>
+<title>PM 5139 - simulator of the original firmware</title>
 <style>
  :root{
-   --gehaeuse:#b9b6ad; --gehaeuse-tief:#8f8d85; --schrift:#23241f;
-   --lcd:#8e9c86; --lcd-aus:#7f8d78; --lcd-an:#161c14;
-   --taste:#d6d3c9; --taste-tief:#a8a59c; --rot:#c0392b;
+   --case:#b9b6ad; --case-deep:#8f8d85; --ink:#23241f;
+   --lcd:#8e9c86; --lcd-off:#7f8d78; --lcd-on:#161c14;
+   --key:#d6d3c9; --key-deep:#a8a59c; --red:#c0392b;
  }
  *{box-sizing:border-box}
- body{margin:0;background:#4a4a46;color:var(--schrift);
+ body{margin:0;background:#4a4a46;color:var(--ink);
    font:15px/1.55 "Helvetica Neue",Helvetica,Arial,sans-serif;
    display:flex;flex-direction:column;align-items:center;padding:28px 14px 60px}
  h1{font-size:19px;font-weight:600;letter-spacing:.01em;margin:0 0 4px}
- .unter{max-width:60ch;color:#d8d6cf;font-size:13.5px;margin:0 0 22px;text-align:center}
+ .subtitle{max-width:60ch;color:#d8d6cf;font-size:13.5px;margin:0 0 22px;text-align:center}
  h1{color:#efeee9}
 
- .geraet{width:min(980px,100%);background:var(--gehaeuse);
+ .instrument{width:min(980px,100%);background:var(--case);
    border-radius:5px;padding:18px 20px 22px;
-   box-shadow:0 2px 0 #cfccc3 inset,0 -3px 0 var(--gehaeuse-tief) inset,0 14px 34px rgba(0,0,0,.45)}
- .kopf{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid #6f6d66;padding-bottom:7px;margin-bottom:16px}
- .typ{font-size:17px;font-weight:700;letter-spacing:.02em}
- .bereich{font-size:13px;color:#4f4e49}
- .marke{margin-left:auto;font-size:15px;font-weight:700;letter-spacing:.14em;color:#3b3a36}
+   box-shadow:0 2px 0 #cfccc3 inset,0 -3px 0 var(--case-deep) inset,0 14px 34px rgba(0,0,0,.45)}
+ .head{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid #6f6d66;padding-bottom:7px;margin-bottom:16px}
+ .type{font-size:17px;font-weight:700;letter-spacing:.02em}
+ .range{font-size:13px;color:#4f4e49}
+ .brand{margin-left:auto;font-size:15px;font-weight:700;letter-spacing:.14em;color:#3b3a36}
 
- .pult{display:grid;grid-template-columns:minmax(300px,1.45fr) minmax(260px,1fr);gap:20px}
+ .panel{display:grid;grid-template-columns:minmax(300px,1.45fr) minmax(260px,1fr);gap:20px}
 
- /* Anzeige */
+ /* display */
  .lcd{background:var(--lcd);border:2px solid #6f6d66;border-radius:3px;padding:12px 14px;
    box-shadow:0 2px 7px rgba(0,0,0,.28) inset}
- .zeile{display:flex;align-items:center;gap:10px;min-height:26px}
- .ann{font-size:10.5px;letter-spacing:.03em;color:var(--lcd-aus);white-space:nowrap;transition:color .05s}
- .ann.an{color:var(--lcd-an);font-weight:600}
- .zahl{margin-left:auto;display:flex;align-items:flex-end;gap:3px}
- .einh{font-size:10px;color:var(--lcd-an);display:flex;flex-direction:column;line-height:1.15}
+ .row{display:flex;align-items:center;gap:10px;min-height:26px}
+ .ann{font-size:10.5px;letter-spacing:.03em;color:var(--lcd-off);white-space:nowrap;transition:color .05s}
+ .ann.on{color:var(--lcd-on);font-weight:600}
+ .number{margin-left:auto;display:flex;align-items:flex-end;gap:3px}
+ .unit{font-size:10px;color:var(--lcd-on);display:flex;flex-direction:column;line-height:1.15}
  .sym{display:flex;gap:7px;margin-left:4px}
- svg .seg{fill:var(--lcd-aus)}
- svg .seg.an{fill:var(--lcd-an)}
- svg .ik{stroke:var(--lcd-aus);fill:none;stroke-width:1.6}
- svg .ik.an{stroke:var(--lcd-an)}
+ svg .seg{fill:var(--lcd-off)}
+ svg .seg.on{fill:var(--lcd-on)}
+ svg .ik{stroke:var(--lcd-off);fill:none;stroke-width:1.6}
+ svg .ik.on{stroke:var(--lcd-on)}
 
- /* Bedienfeld */
- .feld{display:flex;flex-direction:column;gap:12px}
- .gruppe{border:1px solid #97948c;border-radius:3px;padding:8px 9px 10px;background:#c3c0b7}
- .gruppe > span{display:block;font-size:10.5px;color:#4f4e49;margin-bottom:6px}
- .reihe{display:flex;flex-wrap:wrap;gap:6px}
+ /* control panel */
+ .pad{display:flex;flex-direction:column;gap:12px}
+ .group{border:1px solid #97948c;border-radius:3px;padding:8px 9px 10px;background:#c3c0b7}
+ .group > span{display:block;font-size:10.5px;color:#4f4e49;margin-bottom:6px}
+ .line{display:flex;flex-wrap:wrap;gap:6px}
  button.k{font:600 11px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
-   min-width:46px;padding:9px 7px;color:var(--schrift);cursor:pointer;
-   background:var(--taste);border:1px solid #8b887f;border-radius:2px;
-   box-shadow:0 2px 0 var(--taste-tief)}
+   min-width:46px;padding:9px 7px;color:var(--ink);cursor:pointer;
+   background:var(--key);border:1px solid #8b887f;border-radius:2px;
+   box-shadow:0 2px 0 var(--key-deep)}
  button.k:active{transform:translateY(2px);box-shadow:none}
- button.k:focus-visible{outline:2px solid var(--rot);outline-offset:2px}
- button.k.weit{min-width:66px}
+ button.k:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+ button.k.wide{min-width:66px}
 
- .leiste{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;
+ .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;
    border-top:1px solid #97948c;padding-top:12px;font-size:12.5px;color:#4f4e49}
- .leiste button{font:600 11px/1 inherit;padding:8px 12px;background:#cfccc3;
+ .bar button{font:600 11px/1 inherit;padding:8px 12px;background:#cfccc3;
    border:1px solid #8b887f;border-radius:2px;cursor:pointer}
- .zust{font-variant-numeric:tabular-nums}
- .lampe{width:8px;height:8px;border-radius:50%;background:#7a2b22;display:inline-block;vertical-align:middle;margin-right:5px}
- .lampe.an{background:var(--rot);box-shadow:0 0 6px var(--rot)}
+ .state{font-variant-numeric:tabular-nums}
+ .lamp{width:8px;height:8px;border-radius:50%;background:#7a2b22;display:inline-block;vertical-align:middle;margin-right:5px}
+ .lamp.on{background:var(--red);box-shadow:0 0 6px var(--red)}
 
- .fuss{width:min(980px,100%);margin-top:20px;color:#cfcdc6;font-size:12.5px;line-height:1.6}
- .fuss code{background:#3d3d39;padding:1px 4px;border-radius:2px;color:#e6e4dd}
- @media (max-width:720px){ .pult{grid-template-columns:1fr} }
+ .footnote{width:min(980px,100%);margin-top:20px;color:#cfcdc6;font-size:12.5px;line-height:1.6}
+ .footnote code{background:#3d3d39;padding:1px 4px;border-radius:2px;color:#e6e4dd}
+ @media (max-width:720px){ .panel{grid-template-columns:1fr} }
  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
 </style>
 </head>
 <body>
 
-<h1>PM 5139 Funktionsgenerator</h1>
-<p class="unter">Die Originalfirmware V1.3 aus dem 27512-EPROM, Befehl für Befehl im Browser
-nachgerechnet. Anzeige und Tastatur hängen am selben Code wie im echten Gerät.</p>
+<h1>PM 5139 function generator</h1>
+<p class="subtitle">The original firmware V1.3 from the 27512 EPROM, executed
+instruction by instruction in the browser. Display and keyboard hang on the
+same code as in the real instrument.</p>
 
-<div class="geraet">
-  <div class="kopf">
-    <span class="typ">PM 5139</span>
-    <span class="bereich">function generator 0.1 mHz – 20 MHz</span>
-    <span class="marke">PHILIPS</span>
+<div class="instrument">
+  <div class="head">
+    <span class="type">PM 5139</span>
+    <span class="range">function generator 0.1 mHz – 20 MHz</span>
+    <span class="brand">PHILIPS</span>
   </div>
 
-  <div class="pult">
+  <div class="panel">
     <div class="lcd">
-      <div class="zeile">
+      <div class="row">
         <span class="ann" id="a_dial">DIAL LOCKED</span>
         <span class="ann" id="a_remote">REMOTE</span>
         <span class="ann" id="a_fstart">fSTART</span>
-        <span class="zahl" id="hauptfeld"></span>
-        <span class="einh"><span id="a_mhz">MHz</span><span id="a_khz">kHz</span></span>
+        <span class="number" id="mainfield"></span>
+        <span class="unit"><span id="a_mhz">MHz</span><span id="a_khz">kHz</span></span>
       </div>
-      <div class="zeile">
-        <span class="sym" id="symbole"></span>
+      <div class="row">
+        <span class="sym" id="symbols"></span>
         <span class="ann" style="margin-left:auto" id="a_arb">ARB</span>
       </div>
-      <div class="zeile">
+      <div class="row">
         <span class="ann" id="a_dcoff">DC OFFSET</span>
         <span class="ann" id="a_acpp">ACpp</span>
-        <span class="zahl" id="acfeld"></span>
-        <span class="einh"><span>V</span></span>
+        <span class="number" id="acfield"></span>
+        <span class="unit"><span>V</span></span>
       </div>
-      <div class="zeile">
+      <div class="row">
         <span class="ann" id="a_fmod">fMOD</span><span class="ann" id="a_dev">DEV</span>
         <span class="ann" id="a_fstop">fSTOP</span><span class="ann" id="a_tn">T&nbsp;N</span>
         <span class="ann" id="a_sym">SYMMETRY</span><span class="ann" id="a_reg">REG</span>
         <span class="ann" id="a_addr">ADDR</span>
-        <span class="zahl" id="modfeld"></span>
+        <span class="number" id="modfield"></span>
       </div>
-      <div class="zeile" style="gap:8px">
+      <div class="row" style="gap:8px">
         <span class="ann" id="a_modoff">MOD-OFF</span><span class="ann" id="a_am">AM</span>
         <span class="ann" id="a_fm">FM</span><span class="ann" id="a_psk">PSK</span>
         <span class="ann" id="a_gate">GATE</span><span class="ann" id="a_lin">LIN</span>
@@ -117,51 +118,51 @@ nachgerechnet. Anzeige und Tastatur hängen am selben Code wie im echten Gerät.
       </div>
     </div>
 
-    <div class="feld">
-      <div class="gruppe"><span>Frequenz, Kurvenform, Bereich, Gleich- und Wechselanteil</span>
-        <div class="reihe" id="g1"></div></div>
-      <div class="gruppe"><span>Modulation, Symmetrie, Ausgang</span>
-        <div class="reihe" id="g2"></div></div>
-      <div class="gruppe"><span>Trigger, Speicher, Adresse</span>
-        <div class="reihe" id="g3"></div></div>
-      <div class="gruppe"><span>Drehknopf — wirkt auf den angewählten Parameter, DIAL LOCK muss aus sein</span>
-        <div class="reihe">
-          <button class="k weit" id="radLinks">◀◀ 5 Rasten</button>
-          <button class="k" id="radL1">◀ 1</button>
-          <button class="k" id="radR1">1 ▶</button>
-          <button class="k weit" id="radRechts">5 Rasten ▶▶</button>
+    <div class="pad">
+      <div class="group"><span>frequency, waveform, range, DC and AC component</span>
+        <div class="line" id="g1"></div></div>
+      <div class="group"><span>modulation, symmetry, output</span>
+        <div class="line" id="g2"></div></div>
+      <div class="group"><span>trigger, memory, address</span>
+        <div class="line" id="g3"></div></div>
+      <div class="group"><span>rotary knob - acts on the selected parameter, DIAL LOCK has to be off</span>
+        <div class="line">
+          <button class="k wide" id="knobLeft">&#9664;&#9664; 5 detents</button>
+          <button class="k" id="knobL1">&#9664; 1</button>
+          <button class="k" id="knobR1">1 &#9654;</button>
+          <button class="k wide" id="knobRight">5 detents &#9654;&#9654;</button>
         </div></div>
     </div>
   </div>
 
-  <div class="leiste">
-    <button id="btnRun">Anhalten</button>
-    <button id="btnReset">Neu starten</button>
-    <span class="zust"><span class="lampe" id="lampe"></span><span id="stat">startet …</span></span>
+  <div class="bar">
+    <button id="btnRun">pause</button>
+    <button id="btnReset">restart</button>
+    <span class="state"><span class="lamp" id="lamp"></span><span id="stat">starting ...</span></span>
   </div>
 </div>
 
-<p class="fuss">
-  Der Kern führt den 8051-Code des PCB80C652 aus. Timer, Interrupts, der serielle
-  C-Bus und der I²C-Bus sind nachgebildet; die Anzeige wird aus dem echten
-  PCF8576-Datenstrom gelesen, die Tasten erzeugen den pulsweitenkodierten
-  SAA3007-Strom auf P3.3. Das batteriegepufferte RAM ist vorbelegt, die
-  Arbitrary-Kurven im EEPROM werden beim Start erzeugt und von der Firmware
-  selbst geprüft. Die Tastenbeschriftung ist eine Zuordnung über den
-  Tastencode <code>0Ah</code> — sie kann von der echten Frontplatte abweichen.
+<p class="footnote">
+  The core executes the 8051 code of the PCB80C652. Timers, interrupts, the
+  serial C-bus and the I&sup2;C bus are emulated; the display is read out of
+  the real PCF8576 data stream, and the keys produce the pulse-width coded
+  SAA3007 stream on P3.3. The battery-backed RAM is preloaded, the arbitrary
+  curves in the EEPROM are generated at start-up and checked by the firmware
+  itself. The key labelling is on assignment through the key code
+  <code>0Ah</code> - it may differ from the real front panel.
 </p>
 
 <script>
 /*CORE*/
 
-// ---- Daten ---------------------------------------------------------------
+// ---- data ---------------------------------------------------------------
 function b64(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
 var ROM=new Uint8Array(0x10000).fill(0xFF), src=b64("__ROM__");
 ROM.set(src,0);
 var NV=b64("__NV__");
 
-// ---- Arbitrary-EEPROM erzeugen und von der Firmware pruefen lassen --------
-function kurve(art){var o=new Array(1024),i,st=0xACE1;
+// ---- build the arbitrary EEPROM and have the firmware check it -----------
+function curve(art){var o=new Array(1024),i,st=0xACE1;
   for(i=0;i<1024;i++){
     if(art==0)o[i]=Math.round(511+511*Math.sin(2*Math.PI*i/1024));
     else if(art==1)o[i]=Math.round(1023*(1-Math.abs(2*i/1024-1)));
@@ -169,14 +170,14 @@ function kurve(art){var o=new Array(1024),i,st=0xACE1;
     else if(art==3){st=((st>>1)^(-(st&1)&0xB400))&0xFFFF;o[i]=st&0x3FF;}
     else o[i]=512;}
   return o;}
-function packe(s){var out=[],i,k,ext;
+function pack(s){var out=[],i,k,ext;
   for(i=0;i<1024;i+=4){ext=0;
     for(k=0;k<4;k++){out.push((s[i+k]>>2)&255); ext|=(s[i+k]&3)<<(2*k);}
     out.push(ext);}
   return out;}
-function baueEeprom(cpu){
+function buildEeprom(cpu){
   var n,d,base,i;
-  for(n=1;n<=15;n++){ d=packe(kurve(n-1)); base=((n-1)*5+1)*256;
+  for(n=1;n<=15;n++){ d=pack(curve(n-1)); base=((n-1)*5+1)*256;
     for(i=0;i<1280;i++)cpu.xram[base+i]=d[i]; }
   cpu.xram[0]=0x8F;
   for(n=1;n<=15;n++){
@@ -191,7 +192,7 @@ function baueEeprom(cpu){
   cpu.xram[1]=s;
 }
 
-// ---- Siebensegment -------------------------------------------------------
+// ---- seven segment -------------------------------------------------------
 var SEG=[ // d, DP, c, b, g, a, e, f  -> Pfade
  "M6 40 h20 l-3 4 h-14 z",            // d  bit0
  "M30 42 h4 v4 h-4 z",                // DP bit1
@@ -202,63 +203,63 @@ var SEG=[ // d, DP, c, b, g, a, e, f  -> Pfade
  "M4 24 l3 3 v11 l-3 3 -2 -3 v-11 z", // e  bit6
  "M4 4 l3 -3 3 3 v13 l-3 3 -3 -3 z"   // f  bit7
 ];
-function ziffer(){ var g=document.createElementNS("http://www.w3.org/2000/svg","svg");
+function digitSvg(){ var g=document.createElementNS("http://www.w3.org/2000/svg","svg");
   g.setAttribute("viewBox","0 -2 38 50"); g.setAttribute("width","23"); g.setAttribute("height","32");
   SEG.forEach(function(d){var p=document.createElementNS("http://www.w3.org/2000/svg","path");
     p.setAttribute("d",d); p.setAttribute("class","seg"); g.appendChild(p);});
   return g;}
-function setzeZiffer(svg,byte){var p=svg.querySelectorAll("path");
-  for(var i=0;i<8;i++)p[i].classList.toggle("an",!!((byte>>i)&1));}
-function feld(el,n){var a=[];for(var i=0;i<n;i++){var z=ziffer();el.appendChild(z);a.push(z);}return a;}
-var Fhaupt=feld(document.getElementById("hauptfeld"),5);
-var Fac   =feld(document.getElementById("acfeld"),2);
-var Fmod  =feld(document.getElementById("modfeld"),4);
+function setDigit(svg,byte){var p=svg.querySelectorAll("path");
+  for(var i=0;i<8;i++)p[i].classList.toggle("on",!!((byte>>i)&1));}
+function pad(el,n){var a=[];for(var i=0;i<n;i++){var z=digitSvg();el.appendChild(z);a.push(z);}return a;}
+var Fmain=pad(document.getElementById("mainfield"),5);
+var Fac   =pad(document.getElementById("acfield"),2);
+var Fmod  =pad(document.getElementById("modfield"),4);
 
-// Kurvenform-Symbole
-var IKONEN=[
+// waveform symbols
+var ICONS=[
  ["dc","M2 11 h16"],["sin","M2 11 q4 -9 8 0 t8 0"],["tri","M2 17 l5 -12 5 12 5 -12"],
  ["sq","M2 17 v-12 h7 v12 h7 v-12"],["pul","M2 17 h4 v-12 h3 v12 h9"],
  ["pul2","M2 5 h4 v12 h3 v-12 h9"],["saw","M2 17 l7 -12 v12 l7 -12"],
  ["neg","M2 5 l7 12 v-12 l7 12"]];
-var symEl=document.getElementById("symbole"), IK=[];
-IKONEN.forEach(function(k){var s=document.createElementNS("http://www.w3.org/2000/svg","svg");
+var symEl=document.getElementById("symbols"), IK=[];
+ICONS.forEach(function(k){var s=document.createElementNS("http://www.w3.org/2000/svg","svg");
   s.setAttribute("viewBox","0 0 20 20");s.setAttribute("width","22");s.setAttribute("height","20");
   var p=document.createElementNS("http://www.w3.org/2000/svg","path");
   p.setAttribute("d",k[1]);p.setAttribute("class","ik");s.appendChild(p);symEl.appendChild(s);IK.push(p);});
 
-function an(id,v){var e=document.getElementById(id); if(e)e.classList.toggle("an",!!v);}
-// Annunciatoren sind aktiv-low: gesetztes Bit = Segment aus
-function A(b,m){return !(b&m);}  // ungenutzt
+function on(id,v){var e=document.getElementById(id); if(e)e.classList.toggle("on",!!v);}
+// the annunciators are active low: a set bit = segment off
+function A(b,m){return !(b&m);}  // unused
 
-// ---- Anzeige aus dem Puffer ---------------------------------------------
-function zeichne(f,inv){
-  // 22h.1 = angewaehlte Gruppe wird invers dargestellt
+// ---- display from the buffer --------------------------------------------
+function draw(f,inv){
+  // 22h.1 = the selected group is shown inverted
   var W=function(b,m){return inv?!(b&m):!!(b&m);};
-  for(var i=0;i<5;i++)setzeZiffer(Fhaupt[i],f[14+i]);
-  setzeZiffer(Fac[0],f[7]); setzeZiffer(Fac[1],f[8]);
-  for(i=0;i<4;i++)setzeZiffer(Fmod[i],f[9+i]);
-  // Kurvenform: 36h Bits 1,3,2,4,6 | 35h Bits 0,2 | 43h Bits 2..5
+  for(var i=0;i<5;i++)setDigit(Fmain[i],f[14+i]);
+  setDigit(Fac[0],f[7]); setDigit(Fac[1],f[8]);
+  for(i=0;i<4;i++)setDigit(Fmod[i],f[9+i]);
+  // waveform: 36h bits 1,3,2,4,6 | 35h bits 0,2 | 43h bits 2..5
   var b36=f[6],b35=f[5],b43=f[19];
-  IK[0].classList.toggle("an",W(b36,0x02));  // DC
-  IK[1].classList.toggle("an",W(b36,0x08));  // Sinus
-  IK[2].classList.toggle("an",W(b36,0x04));  // Dreieck
-  IK[3].classList.toggle("an",W(b36,0x10));  // Rechteck
-  IK[4].classList.toggle("an",W(b36,0x40));  // Pos. Puls
-  IK[5].classList.toggle("an",W(b35,0x01));  // Neg. Puls
-  IK[6].classList.toggle("an",W(b35,0x04));  // Pos. Saegezahn
-  IK[7].classList.toggle("an",W(b43,0x04));  // Neg. Saegezahn
-  an("a_arb",W(b43,0x02));
-  // Modulationszeile
+  IK[0].classList.toggle("on",W(b36,0x02));  // DC
+  IK[1].classList.toggle("on",W(b36,0x08));  // sine
+  IK[2].classList.toggle("on",W(b36,0x04));  // triangle
+  IK[3].classList.toggle("on",W(b36,0x10));  // square
+  IK[4].classList.toggle("on",W(b36,0x40));  // pos. pulse
+  IK[5].classList.toggle("on",W(b35,0x01));  // neg. pulse
+  IK[6].classList.toggle("on",W(b35,0x04));  // pos. sawtooth
+  IK[7].classList.toggle("on",W(b43,0x04));  // neg. sawtooth
+  on("a_arb",W(b43,0x02));
+  // modulation row
   var b33=f[3],b32=f[2],b31=f[1];
-  an("a_modoff",!(b33&0x02)); an("a_am",!(b33&0x20)); an("a_fm",!(b33&0x40));
-  an("a_psk",!(b32&0x01)); an("a_gate",!(b32&0x10));
-  an("a_lin",!(b31&0x02)); an("a_swp",!(b31&0x08)); an("a_log",!(b31&0x80)); an("a_burst",!(b31&0x40));
-  // uebrige Annunciatoren, soweit zugeordnet
-  an("a_dcoff",f[7]||f[8]); an("a_acpp",f[8]);
+  on("a_modoff",!(b33&0x02)); on("a_am",!(b33&0x20)); on("a_fm",!(b33&0x40));
+  on("a_psk",!(b32&0x01)); on("a_gate",!(b32&0x10));
+  on("a_lin",!(b31&0x02)); on("a_swp",!(b31&0x08)); on("a_log",!(b31&0x80)); on("a_burst",!(b31&0x40));
+  // the remaining annunciators, as far as assigned
+  on("a_dcoff",f[7]||f[8]); on("a_acpp",f[8]);
 }
 
-// ---- Tastenfeld ----------------------------------------------------------
-var TASTEN=[
+// ---- keypad --------------------------------------------------------------
+var KEYS=[
  [1,[["08","FREQ ◀"],["09","FREQ ▶"],["10","WAVE ◀"],["11","WAVE ▶"],
      ["0A","÷10"],["0B","×10"],["18","DC"],["19","AC"]]],
  [2,[["20","MODPAR ◀"],["21","MODPAR ▶"],["28","MODE ◀"],["29","MODE ▶"],
@@ -266,52 +267,52 @@ var TASTEN=[
  [3,[["02","SINGLE"],["03","CONT"],["04","HOLD"],["13","EXT"],
      ["22","STORE"],["23","RECALL"],["0C","ADDR"]]]
 ];
-var cpu=null, laeuft=true, tog=0, bereit=false;
-var schlange=[];                       // Tastendrücke sammeln, einzeln abarbeiten
-function taste(code){ schlange.push(code); }
-function frei(){ return cpu && bereit && cpu.wi>=cpu.wave.length && cpu.ki>=cpu.kn.length; }
-function abarbeiten(){
-  if(!schlange.length || !frei()) return;
-  tog^=1; cpu.key(schlange.shift(), tog);
+var cpu=null, running=true, tog=0, ready=false;
+var queue=[];                       // collect key presses, work them off one by one
+function key(code){ queue.push(code); }
+function idle(){ return cpu && ready && cpu.wi>=cpu.wave.length && cpu.ki>=cpu.kn.length; }
+function drainQueue(){
+  if(!queue.length || !idle()) return;
+  tog^=1; cpu.key(queue.shift(), tog);
 }
-TASTEN.forEach(function(g){ var el=document.getElementById("g"+g[0]);
+KEYS.forEach(function(g){ var el=document.getElementById("g"+g[0]);
   g[1].forEach(function(t){ var b=document.createElement("button");
-    b.className="k"+(t[1].length>7?" weit":""); b.textContent=t[1];
-    b.title="Tastencode "+t[0]+"h, Matrix D"+(parseInt(t[0],16)>>3)+" S"+(parseInt(t[0],16)&7);
-    b.onclick=function(){taste(parseInt(t[0],16));};
+    b.className="k"+(t[1].length>7?" wide":""); b.textContent=t[1];
+    b.title="key code "+t[0]+"h, matrix D"+(parseInt(t[0],16)>>3)+" S"+(parseInt(t[0],16)&7);
+    b.onclick=function(){key(parseInt(t[0],16));};
     el.appendChild(b); }); });
 
-// ---- Ablauf --------------------------------------------------------------
-var stat=document.getElementById("stat"), lampe=document.getElementById("lampe");
+// ---- main loop -----------------------------------------------------------
+var stat=document.getElementById("stat"), lamp=document.getElementById("lamp");
 function start(){
-  stat.textContent="Arbitrary-Speicher wird erzeugt …";
-  var hilf=new CPU(ROM); baueEeprom(hilf);
-  cpu=new CPU(ROM); cpu.nv.set(NV); cpu.xram.set(hilf.xram);
-  cpu.pc=0; letzte=-1; bereit=false; schlange=[]; lampe.classList.add("an");
-  stat.textContent="läuft";
+  stat.textContent="building the arbitrary memory ...";
+  var helper=new CPU(ROM); buildEeprom(helper);
+  cpu=new CPU(ROM); cpu.nv.set(NV); cpu.xram.set(helper.xram);
+  cpu.pc=0; last=-1; ready=false; queue=[]; lamp.classList.add("on");
+  stat.textContent="running";
 }
-function schritte(n){ for(var i=0;i<n&&cpu;i++)cpu.step(); }
-var letzte=-1;
-function schleife(){
-  if(laeuft&&cpu){
-    if(!bereit && cpu.cycles>9000000) bereit=true;    // Einschaltselbsttest abwarten
-    abarbeiten();
-    schritte(1400000);
-    if(cpu.fn!==letzte){ letzte=cpu.fn; zeichne(cpu.frame,(cpu.ram[0x22]>>1)&1); }
-    stat.textContent=(bereit?"bereit":"startet")+" · "+(cpu.cycles/1e6).toFixed(1)+" M Zyklen"+(schlange.length?" · "+schlange.length+" wartend":"");
+function steps(n){ for(var i=0;i<n&&cpu;i++)cpu.step(); }
+var last=-1;
+function loop(){
+  if(running&&cpu){
+    if(!ready && cpu.cycles>9000000) ready=true;    // wait for the power-on self-test
+    drainQueue();
+    steps(1400000);
+    if(cpu.fn!==last){ last=cpu.fn; draw(cpu.frame,(cpu.ram[0x22]>>1)&1); }
+    stat.textContent=(ready?"ready":"starting")+" - "+(cpu.cycles/1e6).toFixed(1)+" M cycles"+(queue.length?" - "+queue.length+" pending":"");
   }
-  requestAnimationFrame(schleife);
+  requestAnimationFrame(loop);
 }
-function drehen(d,n){ if(frei())cpu.rad(d,n); }
-document.getElementById("radLinks").onclick=function(){drehen(1,5);};
-document.getElementById("radL1").onclick=function(){drehen(1,1);};
-document.getElementById("radR1").onclick=function(){drehen(0,1);};
-document.getElementById("radRechts").onclick=function(){drehen(0,5);};
+function turn(d,n){ if(idle())cpu.rad(d,n); }
+document.getElementById("knobLeft").onclick=function(){turn(1,5);};
+document.getElementById("knobL1").onclick=function(){turn(1,1);};
+document.getElementById("knobR1").onclick=function(){turn(0,1);};
+document.getElementById("knobRight").onclick=function(){turn(0,5);};
 document.getElementById("btnRun").onclick=function(){
-  laeuft=!laeuft; this.textContent=laeuft?"Anhalten":"Fortsetzen";
-  lampe.classList.toggle("an",laeuft);};
-document.getElementById("btnReset").onclick=function(){letzte=-1;start();};
-start(); schleife();
+  running=!running; this.textContent=running?"pause":"resume";
+  lamp.classList.toggle("on",running);};
+document.getElementById("btnReset").onclick=function(){last=-1;start();};
+start(); loop();
 </script>
 </body>
 </html>

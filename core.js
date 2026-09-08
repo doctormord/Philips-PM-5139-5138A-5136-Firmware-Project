@@ -1,4 +1,4 @@
-// ---- MCS-51 Kern + PM5139-Peripherie -------------------------------------
+// ---- MCS-51 core + PM5139 peripherals ------------------------------------
 function CPU(rom){
   this.rom=rom; this.ram=new Uint8Array(256); this.sfr=new Uint8Array(256);
   this.xram=new Uint8Array(0x8000); this.nv=new Uint8Array(256);
@@ -13,7 +13,9 @@ CPU.prototype.gR=function(n){return this.ram[this.bank()*8+n];};
 CPU.prototype.sR=function(n,v){this.ram[this.bank()*8+n]=v&255;};
 CPU.prototype.dg=function(a){
   if(a===0x90){var v=this.sfr[0x90]; if(!this.sda)v&=0x7F; v&=~0x1C&255; if(this.ktg)v|=4; if(this.idr)v|=8; if(this.itg)v|=0x10; return v;}
-  if(a===0xB0){var v=this.sfr[0xB0]; return this.p33?(v|8):(v&~8&255);}
+  if(a===0xB0){var v=this.sfr[0xB0]; v=this.p33?(v|8):(v&~8&255);
+    // P3.2 = INT0: the interface card signals an event, active low
+    v=this.ifaceInt?(v&~4&255):(v|4); return v;}
   return a>=0x80?this.sfr[a]:this.ram[a];
 };
 CPU.prototype.ds=function(a,v){ v&=255;
@@ -37,13 +39,25 @@ CPU.prototype.dptr=function(){return (this.sfr[0x83]<<8)|this.sfr[0x82];};
 CPU.prototype.sdptr=function(v){this.sfr[0x83]=(v>>8)&255; this.sfr[0x82]=v&255;};
 CPU.prototype.push=function(v){this.sfr[0x81]=(this.sfr[0x81]+1)&255; this.ram[this.sfr[0x81]]=v&255;};
 CPU.prototype.pop=function(){var v=this.ram[this.sfr[0x81]]; this.sfr[0x81]=(this.sfr[0x81]-1)&255; return v;};
-CPU.prototype.xr=function(d){ if(d>=0x8000){this.strobe^=1; return this.strobe?0x11:0x01;} return this.xram[d]; };
-// ---- I2C-Slaves: PCF8576 (70h) und PCF8570-RAM (A0h) ----------------------
+CPU.prototype.xr=function(d){ if(d>=0x8000){this.strobe^=1;
+  var v=this.strobe?0x11:0x01;
+  if(this.ifaceInt) v|=0x08;          // bit 3: the interface signals an event
+  return v;} return this.xram[d]; };
+// ---- I2C slaves: PCF8576 (70h) and PCF8570 RAM (A0h) ----------------------
 CPU.prototype.rx=function(b){
-  if(this.stage==='addr'){ var base=b&0xFE; this.sel=(base===0x70||base===0xA0);
+  if(this.stage==='addr'){ var base=b&0xFE;
+    this.sel=(base===0x70||base===0xA0||(this.iface&&base===0x5E));
     this.dir=(b&1)?'r':'w'; this.dev=base;
     this.stage=(base===0xA0&&this.dir==='w')?'word':'data';
-    if(base===0x70)this.fbuf=[]; return; }
+    // Only for the interface card: the ACK directly after the read address
+    // comes from the slave, not from the master, and must not overwrite
+    // mack - otherwise no byte is ever fetched. The display and the NVRAM
+    // stay untouched so that the earlier measurements remain valid.
+    if(this.dir==='r'&&base===0x5E&&this.iface){ this.mack=true; this.adrAck=true; }
+    if(base===0x70)this.fbuf=[];
+    if(this.iface&&base===0x5E) this.iface.start(this.dir);
+    return; }
+  if(this.dev===0x5E){ if(this.iface)this.iface.wr(b); return; }
   if(this.dev===0xA0){ if(this.stage==='word'){this.ptr=b; this.stage='data';}
     else {this.nv[this.ptr]=b; this.ptr=(this.ptr+1)&255;} return; }
   this.fbuf.push(b);
@@ -55,31 +69,34 @@ CPU.prototype.i2c=function(o,n){
   if(s&&so&&!ao&&a){this.act=false;this.stage=null;this.sda=1;return;}
   if(!this.act)return;
   if(s&&!so){ if(this.ph==='bits'){ if(this.dir==='w')this.sh=((this.sh<<1)|a)&255; this.nb++; }
-              else if(this.dir==='r')this.mack=(a===0); return; }
+              else if(this.dir==='r'&&!this.adrAck)this.mack=(a===0); return; }
   if(so&&!s){
     if(this.ph==='bits'&&this.nb===8){ this.nb=0; var vm=(this.dir==='w'); if(vm)this.rx(this.sh);
       this.ph='ack'; this.sda=(vm&&this.sel)?0:1; return; }
-    if(this.ph==='ack'){ this.ph='bits'; this.nb=0;
-      if(this.dir==='r'&&this.sel&&this.mack){ this.tx=this.nv[this.ptr]; this.ptr=(this.ptr+1)&255; this.sda=(this.tx>>7)&1; }
+    if(this.ph==='ack'){ this.ph='bits'; this.nb=0; this.adrAck=false;
+      if(this.dir==='r'&&this.sel&&this.mack){
+        this.tx=(this.dev===0x5E&&this.iface)?this.iface.rd():this.nv[this.ptr];
+        if(this.dev!==0x5E)this.ptr=(this.ptr+1)&255;
+        this.sda=(this.tx>>7)&1; }
       else this.sda=1; return; }
     if(this.dir==='r'&&this.sel&&this.nb<8) this.sda=(this.tx>>(7-this.nb))&1;
   }
 };
-// ---- Tastatur -------------------------------------------------------------
+// ---- keyboard -------------------------------------------------------------
 CPU.prototype.key=function(code,tog){
   var H1=8000,H0=2500,G=900, w=[[0,6000]];
-  this.sfr[0x88]|=8;                       // IE1 setzen statt Startpuls
-  var wort=((tog&1)<<10)|(code&0x3F);   // Umschaltbit: Bit 10
-  for(var i=11;i>=0;i--){ w.push([1,((wort>>i)&1)?H1:H0]); w.push([0,G]); }
-  w.push([1,H0]); w.push([0,G]);      // Abschlusspuls: loest die Schlussverrechnung aus
+  this.sfr[0x88]|=8;                       // set IE1 instead of a start pulse
+  var word=((tog&1)<<10)|(code&0x3F);   // toggle bit: bit 10
+  for(var i=11;i>=0;i--){ w.push([1,((word>>i)&1)?H1:H0]); w.push([0,G]); }
+  w.push([1,H0]); w.push([0,G]);      // closing pulse: triggers the final evaluation
   w.push([0,4000]);
   this.wave=w; this.wi=0; this.ktg=1;
 };
 CPU.prototype.rad=function(dir,n){
-  // Vollstaendiger Quadraturzyklus je Raste, Ruhelage (ITG,IDR)=(1,1)
-  var vor  = [[0,1],[0,0],[1,0],[1,1]];
-  var zur  = [[1,0],[0,0],[0,1],[1,1]];
-  var f = dir? vor : zur, w=[], T=2500;
+  // A full quadrature cycle per detent, rest position (ITG,IDR)=(1,1)
+  var fwd  = [[0,1],[0,0],[1,0],[1,1]];
+  var back = [[1,0],[0,0],[0,1],[1,1]];
+  var f = dir? fwd : back, w=[], T=2500;
   for(var i=0;i<(n||1);i++) for(var k=0;k<4;k++) w.push([f[k][0],f[k][1],T]);
   w.push([1,1,8000]);
   this.kn=w; this.ki=0;
@@ -109,7 +126,7 @@ CPU.prototype.irq=function(){
   this.sfr[0x88]&=~clr&255;
   this.push(this.pc&255); this.push((this.pc>>8)&255); this.pc=src; this.inIsr=true;
 };
-// ---- Befehlsausfuehrung ---------------------------------------------------
+// ---- instruction execution ------------------------------------------------
 CPU.prototype.step=function(){
   var m=this.rom, pc=this.pc, op=m[pc];
   if(op===0x32) this.inIsr=false;
@@ -165,7 +182,7 @@ CPU.prototype.g2=function(op,pc,b1,b2,rel,src,A,lo,hi){
     var ci=(hi===0x30||hi===0x90)?this.C():0, x, ac;
     if(hi===0x90){ x=A-v-ci; this.sC(x<0?1:0); ac=((A&15)-(v&15)-ci)<0?1:0; }
     else { x=A+v+ci; this.sC(x>255?1:0); ac=((A&15)+(v&15)+ci)>15?1:0; }
-    this.sfr[0xD0]=(this.sfr[0xD0]&~0x40)|(ac<<6);      // AC = Hilfsuebertrag
+    this.sfr[0xD0]=(this.sfr[0xD0]&~0x40)|(ac<<6);      // AC = auxiliary carry
     this.sA(x); this.pc=pc+ln; return; }
   if((hi===0x40||hi===0x50||hi===0x60)&&lo>=4&&[0x42,0x43,0x52,0x53,0x62,0x63].indexOf(op)<0){
     r=src(lo); var v=r[0]; this.sA(hi===0x40?(A|v):hi===0x50?(A&v):(A^v)); this.pc=pc+r[1]; return; }

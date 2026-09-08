@@ -21,4 +21,4 @@ for byte in range(0x20,0x30):
             hits+=1
             print('  %02Xh.%d  '%(byte,bit) + '  '.join('%02X: %02X->%02X'%x for x in d))
 print()
-print('%d von 128 Flags wirken auf die Anzeige'%hits)
+print('%d of 128 flags affect the display'%hits)

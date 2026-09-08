@@ -1,18 +1,19 @@
-# Philips PM5139 – dekodierte Firmware-Tabellen
+# Philips PM5139 — decoded firmware tables
 
-CPU: MCS-51 mit PCA (8xC51FA/FB-Klasse), 64 KiB externes Programm-ROM (M27512).
+CPU: MCS-51 with PCA (8xC51FA/FB class), 64 KiB of external program ROM (M27512).
 
-## Befehlstabelle
+## Command table
 
-Eintragsformat: 16 Byte = 14 Byte Name (mit 00 aufgefüllt) + 2 Byte Token.
-Token-Byte 1 gilt, wenn dem Befehl ein Parameter oder ein `?` folgt,
-Token-Byte 2, wenn er allein steht. `00` heißt "in dieser Form nicht erlaubt".
-Beispiel: `*STB` = `C4 00` -> nur als Query; `*RST` = `00 C9` -> nur alleinstehend;
-`*ESE` = `C2 C2` -> beides.
+Entry format: 16 bytes = 14 bytes of name (padded with 00) + 2 bytes of
+token. Token byte 1 applies when the command is followed by a parameter
+or a `?`, token byte 2 when it stands alone. `00` means "not permitted in
+this form". Example: `*STB` = `C4 00` -> query only; `*RST` = `00 C9` ->
+standalone only; `*ESE` = `C2 C2` -> both.
 
-Lage: V1.3 ab 7752h (131 Einträge, bis 7F81h) · V1.5 ab 79E5h (139 Einträge, bis 8294h)
+Location: V1.3 from 7752h (131 entries, up to 7F81h) · V1.5 from 79E5h
+(139 entries, up to 8294h)
 
-| Befehl | Tok1 | Tok2 | V1.3 | V1.5 |
+| Command | Tok1 | Tok2 | V1.3 | V1.5 |
 |---|---|---|---|---|
 | `#ACOFF` | 00 | 32 | x | x |
 | `#ACON` | 00 | 33 | x | x |
@@ -155,17 +156,18 @@ Lage: V1.3 ab 7752h (131 Einträge, bis 7F81h) · V1.5 ab 79E5h (139 Einträge, 
 | `TRNGLPULSE` | 00 | 1A | x | x |
 | `WAVEFORM` | 10 | 00 | x | x |
 
-Neu in V1.5: `SAW`, `SAWTH`, `POSSAW`, `POSSAWTH`, `NEGSAW`, `NEGSAWTH`,
-`FMDEV`, `FMDEVTN`, `ARBEXECUTE`. Entfallen: `ARBE` (zu `ARBEXECUTE` umbenannt).
-Kein einziges Token hat sich geändert.
+New in V1.5: `SAW`, `SAWTH`, `POSSAW`, `POSSAWTH`, `NEGSAW`, `NEGSAWTH`,
+`FMDEV`, `FMDEVTN`, `ARBEXECUTE`. Gone: `ARBE` (renamed to `ARBEXECUTE`).
+Not a single token has changed.
 
-## Meldungstabelle
+## Message table
 
-Zeigertabelle mit 16-Bit-Big-Endian-Zeigern, Strings sind längenpräfixiert
-(erstes Byte = Anzahl Zeichen). Ausgaberoutine: V1.3 8014h, V1.5 8327h
-(Index in R4, hängt den Text an den Puffer ab 4Fh an).
+A pointer table with 16-bit big-endian pointers; the strings are
+length-prefixed (first byte = number of characters). Output routine:
+V1.3 8014h, V1.5 8327h (index in R4, appends the text to the buffer at
+4Fh).
 
-Lage: V1.3 803Ch (124 Einträge) · V1.5 834Fh (126 Einträge)
+Location: V1.3 803Ch (124 entries) · V1.5 834Fh (126 entries)
 
 | Idx V1.3 | Idx V1.5 | Text |
 |---|---|---|
@@ -296,12 +298,12 @@ Lage: V1.3 803Ch (124 Einträge) · V1.5 834Fh (126 Einträge)
 | 122 | 124 | `INCOMPATIBLE AMPLITUDE / LOW IMPEDANCE` |
 | 123 | 125 | `UNKNOWN ERROR` |
 
-Nur `IMP 600` (0x44) und `IMP 50` (0x45) sind neu; alle übrigen Texte sind
-zeichenidentisch, aber ab Index 68 um 2 verschoben.
+Only `IMP 600` (44h) and `IMP 50` (45h) are new; all the other texts are
+identical character for character, but shifted by 2 from index 68 on.
 
-## Sprungtabellen (JMP @A+DPTR)
+## Jump tables (JMP @A+DPTR)
 
-| V1.3 | V1.5 | Einträge | Schrittweite |
+| V1.3 | V1.5 | Entries | Stride |
 |---|---|---|---|
 | 0301h | 0570h | 15 | 2 (AJMP/SJMP) |
 | 0421h | 02D2h | 5 | 2 |
@@ -311,14 +313,14 @@ zeichenidentisch, aber ab Index 68 um 2 verschoben.
 | 9BCAh | ABBAh | 10 | 2 |
 | 9C7Dh | AC70h | 9 | 2 |
 | 9CF6h | ACF1h | 9 | 2 |
-| — | B027h | 6 | 2 (nur V1.5, neues Menü) |
+| — | B027h | 6 | 2 (V1.5 only, a new menu) |
 
-## Konfigurationscode in RAM 68h (nur V1.5 auswertbar)
+## Configuration code in RAM 68h (only evaluated by V1.5)
 
     68h = 24h + (d1-1) + (d2-1)*9 + b1*27 + b2*54 + b3*108
           d1 = 1..9, d2 = 1..3, b1/b2/b3 = 0/1   -> 216 Kombinationen
 
-Dekodierung: B21Fh (d1), B286h (d2), B267h (b1), B2B8h (b2), B2A3h (b3).
-b1 steuert Bit 25h.0, das an den neuen Meldungen `IMP 50`/`IMP 600` hängt.
-Eingabe über die Zustandsmaschine AF3Bh/B0BAh, Aufruf bei Tastencode 0Ch
-(nur wenn 68h & E0h != 0). Reset-Vorgaben: 2Bh bzw. 14h.
+Decoding: B21Fh (d1), B286h (d2), B267h (b1), B2B8h (b2), B2A3h (b3).
+b1 drives bit 25h.0, which the new messages `IMP 50`/`IMP 600` hang on.
+Input through the state machine AF3Bh/B0BAh, called on key code 0Ch (only
+when 68h & E0h != 0). Reset defaults: 2Bh resp. 14h.

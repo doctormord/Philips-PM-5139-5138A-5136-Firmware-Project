@@ -1,4 +1,4 @@
-"""PM5139-Systememulator: CPU + Timer + Interrupts + I2C-Slave + Strobes."""
+"""PM5139 system emulator: CPU + timers + interrupts + I2C slave + strobes."""
 import emu
 
 class System(emu.CPU):
@@ -32,7 +32,7 @@ class System(emu.CPU):
         if a == 0x99:
             self.sfr[0x99] = v & 0xFF; self.serial_pending = 10; return
         super().dset(a, v)
-    def bset(self, b, val):         # Bitzugriffe auf P1 ueber dset leiten
+    def bset(self, b, val):         # route bit accesses on P1 through dset
         base, n, sfr = self.bitaddr(b)
         if sfr and base == 0x90:
             v = self.sfr[0x90]
@@ -44,7 +44,7 @@ class System(emu.CPU):
         if sfr and base in (0x90, 0xB0):
             return (self.dget(base) >> n) & 1
         return super().bget(b)
-    # ---- I2C-Slave ---------------------------------------------
+    # ---- I2C slave ---------------------------------------------
     def i2c_watch(self, old, new):
         scl_o, sda_o = (old>>6)&1, (old>>7)&1
         scl, sda = (new>>6)&1, (new>>7)&1
@@ -54,7 +54,7 @@ class System(emu.CPU):
         if scl and scl_o and not sda_o and sda:      # STOP
             self.i2c_active = False; self.sda_slave = 1; return
         if self.i2c_active and scl_o and not scl and self.i2c_ack == 2:
-            self.i2c_ack = 0; self.sda_slave = 1; return   # nach dem ACK-Takt loslassen
+            self.i2c_ack = 0; self.sda_slave = 1; return   # release after the ACK clock
         if self.i2c_active and scl and not scl_o:    # steigende SCL-Flanke
             if self.i2c_ack == 1:
                 self.i2c_ack = 2                      # ACK-Takt laeuft
@@ -67,13 +67,13 @@ class System(emu.CPU):
                     self.i2c_log.append(self.i2c_byte)
                     self.i2c_bits = 0; self.i2c_byte = 0
                     self.i2c_ack = 1; self.sda_slave = 0     # ACK vorbereiten
-    # ---- externer Speicher / Strobes ---------------------------
+    # ---- external memory / strobes -----------------------------
     def xread(self, d):
         if d >= 0x8000:
             self.strobe_toggle ^= 1
             return 0x10 if self.strobe_toggle else 0x00
         return self.xram[d]
-    # ---- Timer und Interrupts ----------------------------------
+    # ---- timers and interrupts ---------------------------------
     def tick(self):
         self.cycles += 1
         tcon = self.sfr[0x88]; tmod = self.sfr[0x89]

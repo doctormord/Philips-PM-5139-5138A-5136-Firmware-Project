@@ -11,7 +11,7 @@ def run(token=None):
     except Exception as e: return None,str(e)
     return bytes(c.ram[0x30:0x44]), (bytes(c.ram[0x20:0x30]))
 base,bflags=run()
-# Tokens aus der Befehlstabelle einlesen
+# read the tokens out of the command table
 tab={}
 a=0x7752
 while True:

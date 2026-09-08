@@ -1,16 +1,22 @@
-# PM5139 — Kreuzreferenz der bitadressierbaren RAM-Flags (20h–2Fh)
+# PM5139 — cross-reference of the bit-addressable RAM flags (20h–2Fh)
 
-Die gesamte Zustandslogik des Geräts steckt in den bitadressierbaren
-Bytes 20h–2Fh des internen RAM. Pro Bit ist unten aufgelistet, an welchen
-Adressen es **gesetzt** (SETB/MOV bit,C/CPL/ORL C), **geloescht** (CLR/ANL C,/bit)
-und **abgefragt** (JB/JNB/JBC/MOV C,bit) wird. Adressen jeweils fuer beide Versionen.
+The whole state logic of the instrument sits in the bit-addressable
+bytes 20h–2Fh of the internal RAM. For each bit, the addresses are listed
+below at which it is **set** (SETB/MOV bit,C/CPL/ORL C), **cleared**
+(CLR/ANL C,/bit) and **tested** (JB/JNB/JBC/MOV C,bit). Addresses are
+given for both versions.
 
-Lesehilfe: wenige Setzer + viele Abfragen = Statusflag; viele Setzer = Steuerflag.
+How to read it: few setters + many tests = a status flag; many setters =
+a control flag.
+
+Caveat: only individual bit instructions are counted. `ORL 29h,#imm` and
+its like are missed, which is why 29h.5 appears here with zero setting
+places although it does get set (see section 28).
 
 
 ## Version V1.3
 
-| Bit | gesetzt | geloescht | abgefragt |
+| Bit | set | cleared | tested |
 |---|---|---|---|
 | `20h.0` | 4× 1359 1428 6B2E 8955 | 4× 137D 8C48 8CDE 8E4B | 8× 0562 0B66 1386 25A9 34CA 36A4 6B07 96BF |
 | `20h.1` | 3× 2CAF 3BB9 3CA9 | 3× 08BE 3BB3 96A9 | 17× 03CA 05F7 2873 2BFE 2C5B 2CAD 2DDC 349B 3557 3B4C … |
@@ -140,7 +146,7 @@ Lesehilfe: wenige Setzer + viele Abfragen = Statusflag; viele Setzer = Steuerfla
 
 ## Version V1.5
 
-| Bit | gesetzt | geloescht | abgefragt |
+| Bit | set | cleared | tested |
 |---|---|---|---|
 | `20h.0` | 4× 13D6 14A5 6D52 8C77 | 4× 13FA 8F7A 9010 91B2 | 8× 06CB 0BF3 1403 2637 3567 3777 6D15 97FA |
 | `20h.1` | 3× 2D65 3CBF 3DB3 | 3× 043F 3CB9 97E4 | 17× 027B 075E 2922 2CBE 2D15 2D63 2E83 3538 3600 3C4A … |

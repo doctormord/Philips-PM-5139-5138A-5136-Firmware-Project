@@ -1,9 +1,9 @@
-"""Tastatureingabe: SAA3007-Wort pulsweitenkodiert auf P3.3, Bereitmeldung auf P1.2."""
+"""Key input: an SAA3007 word, pulse-width coded on P3.3, ready signal on P1.2."""
 import system2
 
 HIGH_1 = 8000     # Pulslaenge Bitwert 1
 HIGH_0 = 2500     # Pulslaenge Bitwert 0
-GAP    = 900      # Pause zwischen den Bits
+GAP    = 900      # gap between the bits
 
 class Geraet(system2.System2):
     def __init__(self, rom, nvram=None):
@@ -25,7 +25,7 @@ class Geraet(system2.System2):
             return 0x11 if self.strobe_toggle else 0x01
         return self.xram[d]
     def taste(self, code, toggle=1):
-        """Startbit, dann 11 Datenbits MSB zuerst."""
+        """A start bit, then 11 data bits, MSB first."""
         wort = ((toggle & 3) << 9) | (code & 0x3F)
         w = [(0, GAP), (1, HIGH_0), (0, GAP)]     # Startbit
         for i in range(10, -1, -1):

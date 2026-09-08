@@ -9,7 +9,7 @@ def build(pre=None, mod=None):
     return bytes(c.ram[0x30:0x44])
 pre = lambda c: c.ram.__setitem__(0x2E, c.ram[0x2E] | 0x04)   # 2Eh.2 setzen
 base=build(pre)
-print('Basis mit 2Eh.2:', ' '.join('%02X'%b for b in base))
+print('base with 2Eh.2:', ' '.join('%02X'%b for b in base))
 print()
 for byte in range(0x20,0x30):
     for bit in range(8):

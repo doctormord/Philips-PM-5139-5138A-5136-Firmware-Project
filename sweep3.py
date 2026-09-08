@@ -7,7 +7,7 @@ def build(sets):
     c.run(0x3381, stubs=STUBS, maxsteps=100000)
     return bytes(c.ram[0x30:0x44])
 base=build([])
-# Flags, die allein nichts bewirken
+# flags that have no effect on their own
 solo_wirkung=set()
 for b in range(0x20,0x30):
     for n in range(8):

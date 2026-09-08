@@ -1,4 +1,4 @@
-"""Minimaler MCS-51 Interpreter fuer die PM5139-Firmware."""
+"""A minimal MCS-51 interpreter for the PM5139 firmware."""
 class CPU:
     def __init__(self, rom):
         self.rom = rom
@@ -9,7 +9,7 @@ class CPU:
         self.sfr[0x81] = 0x6B          # SP
         self.trace_xram = []
         self.calls = 0
-    # --- Zugriffe -------------------------------------------------
+    # --- accesses -------------------------------------------------
     def bank(self): return (self.sfr[0xD0] >> 3) & 3
     def getR(self, n): return self.ram[self.bank()*8 + n]
     def setR(self, n, v): self.ram[self.bank()*8 + n] = v & 0xFF
@@ -18,7 +18,7 @@ class CPU:
         v &= 0xFF
         if a >= 0x80:
             self.sfr[a] = v
-            if a == 0x99: self.ti_at = getattr(self,'ticks',0) + 12  # Senden dauert
+            if a == 0x99: self.ti_at = getattr(self,'ticks',0) + 12  # sending takes time
         else: self.ram[a] = v
     def iget(self, a): return self.ram[a]
     def iset(self, a, v): self.ram[a] = v & 0xFF
@@ -34,7 +34,7 @@ class CPU:
         tgt = self.sfr if sfr else self.ram
         if val: tgt[base] |= (1 << n)
         else:   tgt[base] &= ~(1 << n) & 0xFF
-    # Akku / PSW
+    # accumulator / PSW
     def A(self): return self.sfr[0xE0]
     def setA(self, v):
         v &= 0xFF; self.sfr[0xE0] = v
@@ -55,9 +55,9 @@ class CPU:
         self.sfr[0x81] = (self.sfr[0x81] - 1) & 0xFF
         return v
 
-    # --- Ausfuehrung ----------------------------------------------
+    # --- execution ------------------------------------------------
     def step(self):
-        # Peripherie grob nachbilden: Timer laufen, Sender wird sofort fertig
+        # a rough model of the peripherals: timers run, the transmitter finishes at once
         self.ticks = getattr(self, 'ticks', 0) + 1
         if not getattr(self,'real_timers',False) and self.ticks & 0x1F == 0:
             t = self.sfr[0x88]                 # TCON
@@ -72,8 +72,8 @@ class CPU:
         def b2(): return m[(pc+2) & 0xFFFF]
         def rel(x): return x - 256 if x > 127 else x
         n = lo & 7           # Rn-Nummer bei lo>=8
-        # --- Operanden-Helfer fuer die regulaeren Gruppen
-        def src(ln):         # lo 4..F fuer "A,<src>"
+        # --- operand helpers for the regular groups
+        def src(ln):         # lo 4..F for "A,<src>"
             if ln == 4: return b1(), 2
             if ln == 5: return self.dget(b1()), 2
             if ln in (6,7): return self.iget(self.getR(ln-6)), 1
@@ -132,7 +132,7 @@ class CPU:
             if (a & 0x0F) > 9 or (self.sfr[0xD0]>>6)&1: a += 6
             if ((a>>4) & 0x0F) > 9 or self.C(): a += 0x60; self.setC(1)
             self.setA(a); self.pc=pc+1; return
-        # Sprungbefehle
+        # jump instructions
         if op == 0x80: self.pc = pc+2+rel(b1()); return
         if op in (0x40,0x50): 
             t=pc+2+rel(b1()); self.pc = t if (self.C()==(1 if op==0x40 else 0)) else pc+2; return
@@ -147,7 +147,7 @@ class CPU:
             if v: self.bset(b1(),0); self.pc=t
             else: self.pc=pc+3
             return
-        self.pc = -1  # von group2 behandelt
+        self.pc = -1  # handled by group2
         self._group2(op, pc, b1, b2, rel, n, src)
 
     def _group2(self, op, pc, b1, b2, rel, n, src):
@@ -243,7 +243,7 @@ class CPU:
         if op in (0xD6,0xD7):
             a=self.getR(op-0xD6); t=self.iget(a)
             self.iset(a,(t&0xF0)|(A&0x0F)); self.setA((A&0xF0)|(t&0x0F)); self.pc=pc+1; return
-        # Bitbefehle
+        # bit instructions
         if op==0xC2: self.bset(b1(),0); self.pc=pc+2; return
         if op==0xD2: self.bset(b1(),1); self.pc=pc+2; return
         if op==0xB2: self.bset(b1(),1-self.bget(b1())); self.pc=pc+2; return
@@ -257,7 +257,7 @@ class CPU:
         raise Exception('unbekannter Opcode %02X @ %04X' % (op, pc))
 
     def run(self, addr, maxsteps=2_000_000, stubs=()):
-        """Ruft addr wie ein LCALL auf und laeuft bis zum passenden RET."""
+        """Calls addr like an LCALL and runs until the matching RET."""
         self.push(0xFF); self.push(0xFF)   # Ruecksprungmarke FFFF
         self.pc = addr; depth = 0
         for i in range(maxsteps):

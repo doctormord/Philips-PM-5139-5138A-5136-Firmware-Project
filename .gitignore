@@ -1,0 +1,16 @@
+# Third-party documents are not redistributed here. They are findable
+# online; the analysis in this repository cites them by page.
+*.pdf
+PM5139_User_Manual_OCR_ENG.txt
+
+# Third-party music. Bring your own MIDI file for mkdoom.py --midi.
+*.mid
+
+# Generated on demand, not worth versioning
+__pycache__/
+visited.bin
+blockdiff.txt
+M27512_PM5139_V20_melody.bin
+
+# OS clutter
+.DS_Store

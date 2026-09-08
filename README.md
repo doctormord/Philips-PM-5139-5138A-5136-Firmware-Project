@@ -653,11 +653,22 @@ repository**. They are findable online.
 
 ## License and use
 
-The reverse engineering work, documentation, tooling and generated
-waveforms in this repository are published for interoperability, repair
-and education — these instruments are 30 years old and long out of
-support. The original Philips firmware images are included as the object
-of study; all rights to them remain with their owner.
+Two kinds of material, under different terms — see [LICENSE](LICENSE) for
+the exact scope:
+
+- **The reverse engineering work is MIT.** Documentation, tools, both
+  emulators, symbol tables, annotations, the generated waveforms and the
+  plots. Use it however you like.
+- **The Philips firmware is not ours to license.** The ROM images, the
+  factory chip dumps, the disassembly listings and the browser simulator
+  (which embeds the V1.3 image) reproduce or derive from Philips work.
+  They are here as the object of study, for interoperability, repair and
+  documentation of instruments that have been out of support for decades.
+  Where our own work is mixed in — the annotations, the corrected
+  waveform in V2.0 — only that contribution is MIT.
+
+If you hold rights in the original firmware and object, open an issue and
+it will be removed.
 
 If you use any of this, a link back is appreciated. If you find a mistake,
 open an issue — every claim here names the address or measurement it rests

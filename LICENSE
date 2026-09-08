@@ -1,0 +1,91 @@
+This repository contains two kinds of material, under different terms.
+Please read the scope note before reusing anything.
+
+
+================================================================
+SCOPE
+================================================================
+
+1. NOT COVERED BY THIS LICENSE — Philips firmware and derived material
+----------------------------------------------------------------
+
+The firmware of the Philips PM5139 and its sister models is the work of
+Philips (later Fluke). It is reproduced here as the object of study, for
+interoperability, repair and documentation of instruments that have been
+out of support for decades. No copyright in it is claimed, and none can
+be granted by this license. It is not placed under the MIT terms below.
+
+This reservation covers, at least:
+
+  M27512_PM5139_V13.bin              original firmware image
+  M27512_PM5139_V15.bin              original firmware image
+  M27512_PM5139_V20.bin              modified firmware, derived from V1.5
+  patch_ok.bin                       modified firmware, derived from V1.3
+  PM5139_V13_disasm.asm              disassembly, derived from the firmware
+  PM5139_V15_disasm.asm              disassembly, derived from the firmware
+  PM5139_V13_annotated.asm           the same, with our annotations added
+  PM5139_V15_annotated.asm           the same, with our annotations added
+  PM5139_Diff_V13_V15.txt            instruction-level diff of both images
+  PM5139_Simulator.html              embeds the complete V1.3 firmware
+  D27C64-2_PM5139_SINUS11_V15.bin    contents of the factory SinePROM
+  D27C64-2_PM5139_SINUS11_V15.HEX    the same, as Intel HEX
+  X28C64_PM5139_V15.bin              contents of the factory arbitrary EEPROM
+  X28C64_PM5139_V15.HEX              the same, as Intel HEX
+  D310_image.bin                     the same image, as used by the emulator
+  D310_image_synthetic.bin           an earlier synthetic stand-in for it
+
+and, generally, any file in this repository that reproduces firmware
+bytes, is mechanically derived from them, or depicts their contents.
+
+Where our own work is mixed into such a file — the annotations in the
+annotated listings, the corrected waveform in M27512_PM5139_V20.bin, the
+computed curves in D310_image_V20.bin — only our contribution is offered
+under the MIT terms below. The surrounding original material is not.
+
+If you hold rights in the original firmware and object to it being
+reproduced here, please open an issue and it will be removed.
+
+
+2. COVERED BY THIS LICENSE — the reverse engineering work
+----------------------------------------------------------------
+
+Everything written for this project: the documentation (README.md,
+PM5139_*.md, HANDOVER.md, BACKLOG.md, CLAUDE.md), the tools and
+emulators (all .py and .js files, shell.html), the symbol tables and
+annotations, the generated waveforms and the plots of them.
+
+
+================================================================
+MIT License
+================================================================
+
+Copyright (c) 2025 doctormord
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+================================================================
+A NOTE ON FLASHING
+================================================================
+
+The firmware images here have been tested on one instrument. Modified
+firmware can leave a device unusable — read your original EPROM twice,
+compare the dumps, and keep the chip. Nothing here comes with any
+warranty; see the MIT text above.

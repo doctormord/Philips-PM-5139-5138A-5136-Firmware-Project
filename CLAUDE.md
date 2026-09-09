@@ -86,6 +86,7 @@ the other way round: when the listing does not help, measure.
 | `system.py`, `system2.py` | peripherals: timers, interrupts, I²C, strobes |
 | `keys.py` | keyboard and rotary knob input |
 | `core.js` | the same core in JavaScript, ~8 million instructions/s |
+| | both cores model the waveform RAM (`wram`, clocked by DBK on P3.5) and the measured strobes STR1/6/7/8/9 in `afe`; `afeState()` summarises. STR3, STR4 and STR5 are counted only — see section 36.9 |
 | `bitmap.js` | check the display bitmap, singly and in pairs |
 | `trace.js` | log the ROM addresses that were executed |
 | `flags.js` | effect of the state bits on the C-bus telegrams |

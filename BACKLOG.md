@@ -711,6 +711,16 @@ back carries the modulation oscillator's signal outside. Two BNCs, mixed
 externally. And since the SinePROM D131 is a socketed 27C64 that we have
 read out (section 31), its waveform can be replaced too.
 
+**The table is the patch, not the note** (section 36.3, measured). A
+wavetable reload is 16.4 ms at the absolute floor — 2048 bytes at the
+C-bus rate of f_osc/12 — 32 ms with the firmware's own fastest loop,
+39.5 ms from a ready-made ROM table, and 55.7 ms for an ARB slot out of
+the EEPROM, where the unpacking costs the difference. There is no second
+RAM page to swap. So no amount of firmware work changes the waveform at
+note rate, and the design has to put the table on the program-change
+level, exactly as a PPG Wave does. Note on is a retune (139 µs), velocity
+and envelope are one STR9 byte (49 µs).
+
 ### Groundwork before anyone starts
 
 * a table of 128 ready-made TWS frequency words, one per MIDI note

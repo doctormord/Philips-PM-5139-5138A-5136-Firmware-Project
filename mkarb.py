@@ -14,13 +14,16 @@ The format, documented in section 32:
 
 Curve k begins at 0100h + (k-1)*1280, k = 1..n.
 
-    python3 mkarb.py            -> D310_image_V20.bin
+    python3 mkarb.py            -> D310_image_V20.bin   (test waveforms)
+    python3 mkarb.py --chords   -> D310_image_chords.bin (six chords)
 """
 import sys
 import waveforms
+import mkchord
 
 BASE   = 'D310_image.bin'          # the X28C64 that was read out
 TARGET = 'D310_image_V20.bin'
+TARGET_CHORDS = 'D310_image_chords.bin'
 RECORD = 1280
 DATA   = 0x100
 
@@ -34,6 +37,20 @@ NEW = {1: ('sinc',      waveforms.sinc),
        5: ('rectified', waveforms.rectified),
        6: ('multitone', waveforms.multitone)}
 
+# `python3 mkarb.py --chords` fills the six slots with chords instead.
+#
+# This is polyphony without touching the firmware at all: the table in
+# the arbitrary EEPROM is one period of the output, exactly as the
+# waveform RAM is, so a sum of harmonics plays as a chord (section 36).
+# Write the EEPROM, pick the slot on the front panel, set the frequency
+# by hand — the instrument sounds h * f for every harmonic number h.
+#
+# Six slots, so six chords. They are chosen to be usable together: a
+# fifth and a power chord for riffs, major and minor for triads, and two
+# sevenths.
+CHORDS = {1: 'fifth', 2: 'power', 3: 'major',
+          4: 'minor', 5: 'dom7',  6: 'min7'}
+
 
 def unpack(d, at):
     w = []
@@ -44,12 +61,20 @@ def unpack(d, at):
     return w
 
 
-def main():
+def main(argv=()):
+    chords = '--chords' in argv
+    target = TARGET_CHORDS if chords else TARGET
+    table = ({k: (v, (lambda n=v: mkchord.chord(mkchord.CHORDS[n])))
+              for k, v in CHORDS.items()} if chords else NEW)
+
     d = bytearray(open(BASE, 'rb').read())
     n = d[0] & 0x0F
     print('base: %s, %d curve slots' % (BASE, n))
+    if chords:
+        print('filling every slot with a chord — the instrument then plays')
+        print('h * f for every harmonic number h of the chord')
 
-    for k, (name, f) in sorted(NEW.items()):
+    for k, (name, f) in sorted(table.items()):
         if not 1 <= k <= n:
             raise SystemExit('slot %d does not exist' % k)
         raw = waveforms.as_eeprom(f())
@@ -64,9 +89,16 @@ def main():
         d[rec] = (0x55 + sum(raw)) & 0xFF
         d[rec+1] = (lo << 6) >> 8;  d[rec+2] = (lo << 6) & 0xFF
         d[rec+3] = (hi << 6) >> 8;  d[rec+4] = (hi << 6) & 0xFF
+        extra = ''
+        if chords:
+            h = mkchord.CHORDS[name]
+            extra = '  = %s, so f -> %s' % (
+                ':'.join(str(x) for x in h),
+                ' '.join('%dx' % x for x in h))
         print('  slot %d <- %-9s from %04Xh, values %d..%d (%+d..%+d, %.2f Vpp), '
-              'identity %02Xh'
-              % (k, name, start, lo, hi, lo-512, hi-512, (hi-lo)/1022*20, d[rec]))
+              'identity %02Xh%s'
+              % (k, name, start, lo, hi, lo-512, hi-512, (hi-lo)/1022*20,
+                 d[rec], extra))
 
     # Re-form the check byte of the directory
     length = n*5 + 5
@@ -76,9 +108,9 @@ def main():
     d[1] = s
     print('directory check byte: %02Xh over %d bytes from 0002h' % (s, length))
 
-    open(TARGET, 'wb').write(bytes(d))
-    print('written: %s (%d bytes)' % (TARGET, len(d)))
+    open(target, 'wb').write(bytes(d))
+    print('written: %s (%d bytes)' % (target, len(d)))
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

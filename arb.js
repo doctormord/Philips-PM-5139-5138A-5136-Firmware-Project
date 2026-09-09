@@ -35,3 +35,9 @@ check('real, one data bit flipped', FLIPPED);
 check('real, check byte flipped', HEADER);
 check('synthetic (counter-check)', SYN);
 check('empty FFh', EMPTY);
+// Our own images, if they have been built. A rejected count above zero
+// here means the instrument would answer Err 8 and refuse the curves.
+for(const f of ['D310_image_V20.bin', 'D310_image_chords.bin']){
+  try{ check('ours: '+f, new Uint8Array(fs.readFileSync(P+f))); }
+  catch(e){ console.log(`  ours: ${f.padEnd(26)} not built`); }
+}

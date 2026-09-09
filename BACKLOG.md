@@ -515,47 +515,103 @@ mean of the deviation is zero.
 - V1.5 has barely run in the emulator so far; all measurements come from
   V1.3.
 
-## Sound: three routes not yet taken
+## Sound: what is left besides MIDI
 
-Section 36 establishes that the instrument is a 1024-point wavetable DDS
-whose table the CPU writes, and builds a polyphonic player on that. Three
-neighbouring ideas are testable on their own and are not done.
+Reassessed after the polyphonic player ran on the instrument. The numbers
+below are measured, not estimated (sections 36.8 and 36.9).
 
-**Done since:** the polyphonic player exists and runs on the instrument
-(section 36). What follows was written before that and the first item is
-now only worth doing as a cross-check.
+**1. Chord wavetables through the ARB EEPROM — buildable now, no EPROM.**
+The owner confirmed the arbitrary function works on this instrument: six
+curves out of the fitted X28C64, selectable from the front panel. So this
+is polyphony **without touching the firmware at all** — write the EEPROM,
+pick a slot, set the frequency by hand, and the instrument sounds h · f
+for every harmonic number h in the table.
 
-**Chord wavetables through the ARB EEPROM — the quickest test of all.**
-The download format carries ten bits per point, exactly what the ARB
-EEPROM stores, so a chord table needs no firmware change at all: generate
-it with `mkchord.py`, write it into the six ARB slots with `mkarb.py`,
-select the slot from the front panel and set the frequency by hand. Six
-chords, no risk, no EPROM to burn. This is the fastest way to hear
-whether a just-intonation triad through the analog chain sounds the way
-the arithmetic says it should, and it should be done before anything
-else. Watch the per-curve identity byte, or the instrument answers Err 8
-(section 32).
+`python3 mkarb.py --chords` builds it. Six slots, six chords, chosen to
+be usable together:
 
-**PCM playback through the DC generator.** STR7 carries two bytes to
-D301 (74HCT4094) and on to N302, a **DAC-08EN**, buffered by N301 (TL072)
-and summed into the main output over a ±20 V window — an eight-bit
-converter that the CPU writes directly. A two-byte telegram is about
-47 µs of routine plus 16 µs of bus, so on the order of 20 kSa/s. That is
-the only route to sounds that are not periodic — speech, drums, anything
-a wavetable cannot hold. Two things are unmeasured and decide it: whether
-the DC path is filtered (the schematic shows DAC-08 straight into the
-TL072, but no component values were read off), and what a hand-written
-output loop really costs. Note this is the "class-D" idea without the
-PWM: the resolution is already there in the converter, so modulating a
-pulse width would only throw it away.
+| Slot | Chord | Harmonics | at f = 100 Hz |
+|---|---|---|---|
+| 1 | fifth | 2:3 | 200, 300 |
+| 2 | power | 2:3:4 | 200, 300, 400 |
+| 3 | major | 4:5:6 | 400, 500, 600 |
+| 4 | minor | 10:12:15 | 1000, 1200, 1500 |
+| 5 | dom7 | 4:5:6:7 | 400, 500, 600, 700 |
+| 6 | min7 | 10:12:15:18 | 1000, 1200, 1500, 1800 |
 
-**Delta-sigma on the pen lift line.** P1.0 drives V356 (BC337-25) to a
-0/+5 V rear-panel BNC — the only genuinely CPU-wiggled single bit that
-leaves the instrument. `SETB P1.0` / `CLR P1.0` is one machine cycle, so
-a noise-shaped one-bit stream at a few hundred kHz is possible, and a
-resistor and capacitor into a small speaker would make it audible. It
-would be a second, independent channel that does not disturb the main
-output at all.
+The identity byte per curve is computed, and `arb.js` now checks our own
+images against the firmware's own directory routine at 9615h — both
+`D310_image_V20.bin` and `D310_image_chords.bin` come back **rejected: 0x**,
+so no Err 8.
+
+What is left is to burn it and listen, which is the one thing that cannot
+be done here: whether a just-intonation triad through the analogue chain
+sounds the way the arithmetic says. Note the intervals are **just, not
+equal-tempered** — the major third is 386 cents against 400, which is
+audibly different and, for a sustained chord, better.
+
+**2. Sample playback — through STR9, not the DC generator.**
+The earlier plan was to write the DC generator (STR7 -> D301 -> N302
+DAC-08). That is the worse of the two paths now that both are measured:
+
+| | STR7, DC generator | **STR9, amplitude** |
+|---|---|---|
+| Telegram | 2 bytes | **1 byte** |
+| Firmware routine | 79 us | **49 us** |
+| Hand-written loop | ~30 us | **~22 us -> 45 kSa/s** |
+| Side effects | first byte carries the attenuator relays | none |
+| Resolution | 8 bit | 7 bit (it wraps at 80h) |
+
+STR9 feeds the AM6012, which multiplies the waveform coming out of the
+RAM. Load the wavetable with a constant and the output becomes the DAC
+value alone — a plain PCM converter on the main output, at up to 11.6 Vpp.
+This is not speculation: the amplitude matrix of section 36.8 scaled a
+triangle smoothly with that byte, which is multiplying behaviour.
+
+**The ceiling is ROM, not speed.** One byte per sample:
+
+| Rate | With the poly player in ROM (13 492 bytes) | Whole free area (19 509) |
+|---|---|---|
+| 8 kSa/s | 1.7 s | 2.4 s |
+| 16 kSa/s | 0.84 s | 1.2 s |
+| 44.1 kSa/s | 0.31 s | 0.44 s |
+
+So this is a **sound effect, not a music route** — one drum hit, one
+sampled shout, a second at most. The arbitrary EEPROM adds 8 KB over
+MOVX, which buys another second at 8 kSa/s and costs a second read per
+sample. Worth doing for what it is; not worth doing expecting a song.
+Note this is the "class-D" idea without the PWM: the resolution is
+already in the converter, so modulating a pulse width would only throw it
+away.
+
+**3. A second, independent channel on the pen lift line.**
+P1.0 drives V356 (BC337-25) to a 0/+5 V BNC on the rear panel. It is the
+only genuinely CPU-wiggled single bit that leaves the instrument, and
+`SETB P1.0` / `CLR P1.0` is one machine cycle each.
+
+As a way of making the main output louder this is pointless now — STR9
+gives seven real bits. What makes it interesting is that it is a
+**separate output**. The wavetable chord on the front BNC needs no CPU
+time at all once the table is loaded; the TWS reads it out by itself and
+the CPU only sets the frequency, a few hundred microseconds per note. So
+the CPU is idle almost all the time, and that idle time could drive a
+one-bit stream on the rear connector. Chord and melody in front,
+percussion behind, from one 8051 and no added hardware. Nobody has tried
+it.
+
+Rough budget, from the measured figures: a bit period of two machine
+cycles is 2 µs, so 500 kbit/s. Noise-shaped, that is a comfortable
+several hundred kHz of oversampling for a few kHz of audio bandwidth —
+easily enough for drums. An RC into a small speaker is the whole
+reconstruction filter. What has to be worked out is the interleaving: the
+melody loop has to keep the bit stream fed while it waits out a note, so
+the note timing would move from a `DJNZ` delay into the sample counter.
+That is a rewrite of the player loop, not a new discovery.
+
+Two things to check before believing any of it: whether P1.0 is free
+while the diagnostic menu entry runs (the firmware toggles it with
+timer 1 during sweeps, at 1911h and 1A3Fh — section 12), and how much
+drive the open-collector stage really has into a speaker load.
 
 **Still open from section 36.**
 

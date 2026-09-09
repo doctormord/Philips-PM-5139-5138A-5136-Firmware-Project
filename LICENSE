@@ -39,8 +39,9 @@ bytes, is mechanically derived from them, or depicts their contents.
 
 Where our own work is mixed into such a file — the annotations in the
 annotated listings, the corrected waveform in M27512_PM5139_V20.bin, the
-computed curves in D310_image_V20.bin — only our contribution is offered
-under the MIT terms below. The surrounding original material is not.
+computed curves in D310_image_V20.bin and D310_image_chords.bin — only
+our contribution is offered under the MIT terms below. The surrounding
+original material is not.
 
 If you hold rights in the original firmware and object to it being
 reproduced here, please open an issue and it will be removed.

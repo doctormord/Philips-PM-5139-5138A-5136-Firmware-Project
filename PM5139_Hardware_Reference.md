@@ -4838,6 +4838,12 @@ python3 romfix.py poly.bin              # verify the checksum
 node polytest.js poly.bin               # verify on the bus
 ```
 
+The same tables also fit the arbitrary EEPROM, which needs no firmware
+change at all: `python3 mkarb.py --chords` fills the six slots with
+chords, and the curves are then selected from the front panel like any
+other arbitrary waveform. `arb.js` verifies the directory against the
+firmware's own check at 9615h.
+
 Useful switches: `--chord` picks the harmony, `--waveform` the RAM
 waveform to route through, `--relay` and `--dac` the output level
 (section 36.8), `--leadin` prepends three seconds of a plain ramp as a

@@ -15,6 +15,25 @@ function CPU(rom){
   this.sda=1; this.act=false; this.stage=null; this.dir='w'; this.nb=0; this.sh=0;
   this.ph='bits'; this.sel=false; this.mack=true; this.tx=0; this.ptr=0; this.dev=0;
   this.disp=new Uint8Array(20); this.frame=new Uint8Array(20); this.fbuf=[]; this.fn=0;
+  // ---- waveform RAM on unit 4 (D107/D108), read by the TWS ----------------
+  // 1024 points. The CPU shifts two bytes per point out of SBUF, high byte
+  // first, and a DBK pulse on P3.5 latches them. Measured format, section
+  // 36.1: value = (first << 2) | (second >> 6), so ten bits, 1..1023 with
+  // 512 as the zero line. An STR2 telegram puts the RAM into write mode and
+  // resets the address (section 36.6, the `00 80` word).
+  this.wram=new Uint16Array(1024); this.waddr=0; this.wpend=[]; this.wcount=0;
+  this.dbk=1;
+  // ---- analogue front end -------------------------------------------------
+  // Only what has been measured is modelled. STR3 (pulse generator and
+  // amplitude modulator mux), STR4 (burst counter) and STR5 (modulation
+  // oscillator) are counted but not interpreted — their telegram contents
+  // were never pinned down, and guessing would make the model lie.
+  this.afe={ n:0, e:0, cmd:0, hz:0,          // STR6, the main TWS
+             dac:0, relays:0, atten:null,    // STR9 amplitude, STR7 relays
+             offset:0x64, sweep:0,           // STR7 second byte, STR8
+             page:0,                         // STR1 control word
+             seen:{} };
+  this.tel=[];
 }
 CPU.prototype.bank=function(){return (this.sfr[0xD0]>>3)&3;};
 CPU.prototype.gR=function(n){return this.ram[this.bank()*8+n];};
@@ -28,14 +47,60 @@ CPU.prototype.dg=function(a){
 };
 CPU.prototype.ds=function(a,v){ v&=255;
   if(a===0x90){var o=this.sfr[0x90]; this.sfr[0x90]=v; this.i2c(o,v); return;}
-  if(a>=0x80){ this.sfr[a]=v; if(a===0x99)this.tiAt=this.cycles+12; } else this.ram[a]=v;
+  if(a===0xB0){                        // P3: bit 5 is DBK, the RAM write clock
+    var was=this.dbk; this.dbk=(v>>5)&1;
+    if(!was && this.dbk) this.wclock(); // latch one point on the rising edge
+  }
+  if(a>=0x80){ this.sfr[a]=v;
+    if(a===0x99){ this.tiAt=this.cycles+12; this.wpend.push(v); } }
+  else this.ram[a]=v;
+};
+// Interpret a completed telegram. Sources: STR6 section 18, STR7 and STR9
+// section 36.8, STR8 section 23, STR1 section 23 (RAM_PAGE).
+CPU.prototype.afeStrobe=function(str, b){
+  var a=this.afe;
+  if(str===6 && b.length===4){
+    a.n=(b[1]<<8)|b[0]; a.e=b[2]>>5; a.cmd=b[3];
+    a.hz=a.n*0.005*Math.pow(10, 3-a.e);
+  } else if(str===9 && b.length===1){
+    a.dac=b[0]&0x7F;                    // seven bits; it wraps above 7Fh
+  } else if(str===7 && b.length===2){
+    a.relays=b[0];
+    a.atten={0:40,1:20,2:20,3:0}[(b[0]>>3)&3];   // bits 3 and 4, 20 dB each
+    a.offset=b[1];                      // 64h is the zero line
+  } else if(str===8 && b.length===1){
+    a.sweep=b[0];
+  } else if(str===1 && b.length===2){
+    a.page=(b[0]<<8)|b[1];
+  }
+};
+// A one-line summary of what the instrument would be putting out.
+CPU.prototype.afeState=function(){
+  var a=this.afe, w=Array.from(this.wram);
+  var pp=(Math.max.apply(null,w)-Math.min.apply(null,w))/1022;
+  var att=a.atten===null?'?':a.atten+' dB';
+  return 'f='+a.hz.toFixed(2)+' Hz  table '+(pp*100).toFixed(0)+'% pp'
+       + '  DAC '+a.dac+'/127  atten '+att
+       + '  offset '+(a.offset-0x64>=0?'+':'')+(a.offset-0x64);
+};
+// One point into the waveform RAM, on the rising edge of DBK.
+CPU.prototype.wclock=function(){
+  if(this.wpend.length<2) { this.wpend=[]; return; }
+  var b0=this.wpend[this.wpend.length-2], b1=this.wpend[this.wpend.length-1];
+  this.wram[this.waddr]=((b0<<2)|(b1>>6))&0x3FF;
+  this.waddr=(this.waddr+1)&0x3FF; this.wcount++;
+  this.wpend=[];
 };
 CPU.prototype.ba=function(b){return b>=0x80?[b&0xF8,b&7,1]:[0x20+(b>>3),b&7,0];};
 CPU.prototype.bg=function(b){var t=this.ba(b);
   if(t[2]&&(t[0]===0x90||t[0]===0xB0))return (this.dg(t[0])>>t[1])&1;
   return ((t[2]?this.sfr[t[0]]:this.ram[t[0]])>>t[1])&1;};
 CPU.prototype.bs=function(b,v){var t=this.ba(b);
-  if(t[2]&&t[0]===0x90){var x=this.sfr[0x90]; x=v?(x|(1<<t[1])):(x&~(1<<t[1])&255); this.ds(0x90,x); return;}
+  // P1 and P3 are routed through ds() so that the I2C lines and the DBK
+  // write clock of the waveform RAM see single-bit writes too — CLR P3.5
+  // and SETB P3.5 are exactly how a point is latched.
+  if(t[2]&&(t[0]===0x90||t[0]===0xB0)){var p=t[0], x=this.sfr[p];
+    x=v?(x|(1<<t[1])):(x&~(1<<t[1])&255); this.ds(p,x); return;}
   var A=t[2]?this.sfr:this.ram;
   if(v)A[t[0]]|=(1<<t[1]); else A[t[0]]&=~(1<<t[1])&255;};
 CPU.prototype.A=function(){return this.sfr[0xE0];};
@@ -170,7 +235,14 @@ CPU.prototype.step=function(){
   else if(op===0x83){this.sA(m[(pc+1+A)&0xFFFF]);this.pc=pc+1;}
   else if(op===0x73){this.pc=(this.dptr()+A)&0xFFFF;}
   else if(op===0xE0){this.sA(this.xr(this.dptr()));this.pc=pc+1;}
-  else if(op===0xF0){var d=this.dptr(); if(d<0x8000)this.xram[d]=A; this.pc=pc+1;}
+  else if(op===0xF0){var d=this.dptr();
+    if(d<0x8000)this.xram[d]=A;
+    else { var st=(d>>8)&15;            // 8n00h fires strobe n
+      if(st===2){ this.waddr=0; this.wcount=0; }  // STR2 = RAM into write mode
+      this.afe.seen[st]=(this.afe.seen[st]||0)+1;
+      if(st>=1) this.afeStrobe(st, this.wpend);
+      this.wpend=[]; }                  // a strobe always ends a telegram
+    this.pc=pc+1;}
   else if(op===0xE2||op===0xE3){this.sA(this.xr(this.gR(op-0xE2)));this.pc=pc+1;}
   else if(op===0xF2||op===0xF3){this.pc=pc+1;}
   else if(op===0xA4){var b=this.sfr[0xF0],r=A*b; this.sA(r&255); this.sfr[0xF0]=(r>>8)&255; this.sC(0); this.pc=pc+1;}

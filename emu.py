@@ -9,6 +9,19 @@ class CPU:
         self.xram = bytearray(0x10000) # external RAM / EEPROM
         self.pc = 0
         self.ticks = 0; self.mcyc = 0
+        # Waveform RAM on unit 4, read by the TWS. Two bytes per point come
+        # out of SBUF, high byte first, and a rising edge of DBK (P3.5)
+        # latches them; a strobe on STR2 resets the address. Same model as
+        # core.js, see section 36.1.
+        self.wram = [0]*1024; self.waddr = 0; self.wpend = []
+        self.wcount = 0; self.dbk = 1
+        # Analogue front end. Only the measured strobes are interpreted:
+        # STR6 (section 18), STR7 and STR9 (36.8), STR8 (23), STR1 (23).
+        # STR3, STR4 and STR5 are counted but not decoded — their contents
+        # were never pinned down and a guess would make the model lie.
+        self.afe = {'n': 0, 'e': 0, 'cmd': 0, 'hz': 0.0,
+                    'dac': 0, 'relays': 0, 'atten': None,
+                    'offset': 0x64, 'sweep': 0, 'page': 0, 'seen': {}}
         self.sfr[0x81] = 0x6B          # SP
         self.trace_xram = []
         self.calls = 0
@@ -19,10 +32,49 @@ class CPU:
     def dget(self, a):  return self.sfr[a] if a >= 0x80 else self.ram[a]
     def dset(self, a, v):
         v &= 0xFF
+        if a == 0xB0:                       # P3: bit 5 is DBK, the write clock
+            was = self.dbk; self.dbk = (v >> 5) & 1
+            if not was and self.dbk: self.wclock()
         if a >= 0x80:
             self.sfr[a] = v
-            if a == 0x99: self.ti_at = self.ticks + 12  # sending takes time
+            if a == 0x99:
+                self.ti_at = self.ticks + 12    # sending takes time
+                self.wpend.append(v)
         else: self.ram[a] = v
+
+    def afe_strobe(self, str_, b):
+        a = self.afe
+        if str_ == 6 and len(b) == 4:
+            a['n'] = (b[1] << 8) | b[0]; a['e'] = b[2] >> 5; a['cmd'] = b[3]
+            a['hz'] = a['n'] * 0.005 * 10 ** (3 - a['e'])
+        elif str_ == 9 and len(b) == 1:
+            a['dac'] = b[0] & 0x7F              # seven bits, wraps above 7Fh
+        elif str_ == 7 and len(b) == 2:
+            a['relays'] = b[0]
+            a['atten'] = {0: 40, 1: 20, 2: 20, 3: 0}[(b[0] >> 3) & 3]
+            a['offset'] = b[1]                  # 64h is the zero line
+        elif str_ == 8 and len(b) == 1:
+            a['sweep'] = b[0]
+        elif str_ == 1 and len(b) == 2:
+            a['page'] = (b[0] << 8) | b[1]
+
+    def afe_state(self):
+        """One line describing what the instrument would be putting out."""
+        a = self.afe
+        pp = (max(self.wram) - min(self.wram)) / 1022
+        att = '?' if a['atten'] is None else '%d dB' % a['atten']
+        return ('f=%.2f Hz  table %.0f%% pp  DAC %d/127  atten %s  offset %+d'
+                % (a['hz'], pp * 100, a['dac'], att, a['offset'] - 0x64))
+
+    def wclock(self):
+        """Latch one point into the waveform RAM on the rising edge of DBK."""
+        if len(self.wpend) < 2:
+            self.wpend = []; return
+        b0, b1 = self.wpend[-2], self.wpend[-1]
+        self.wram[self.waddr] = ((b0 << 2) | (b1 >> 6)) & 0x3FF
+        self.waddr = (self.waddr + 1) & 0x3FF
+        self.wcount += 1
+        self.wpend = []
     def iget(self, a): return self.ram[a]
     def iset(self, a, v): self.ram[a] = v & 0xFF
     def bitaddr(self, b):
@@ -34,6 +86,10 @@ class CPU:
         return (v >> n) & 1
     def bset(self, b, val):
         base, n, sfr = self.bitaddr(b)
+        if sfr and base == 0xB0:            # CLR P3.5 / SETB P3.5 must be seen
+            x = self.sfr[base]
+            x = (x | (1 << n)) if val else (x & ~(1 << n) & 0xFF)
+            self.dset(base, x); return
         tgt = self.sfr if sfr else self.ram
         if val: tgt[base] |= (1 << n)
         else:   tgt[base] &= ~(1 << n) & 0xFF
@@ -123,6 +179,13 @@ class CPU:
         if op == 0xF0:
             d=self.dptr(); self.trace_xram.append((d,A))
             if d < 0x8000: self.xram[d]=A
+            else:
+                st = (d >> 8) & 15
+                if st == 2:                 # STR2 puts the RAM into write mode
+                    self.waddr = 0; self.wcount = 0
+                self.afe['seen'][st] = self.afe['seen'].get(st, 0) + 1
+                if st >= 1: self.afe_strobe(st, self.wpend)
+                self.wpend = []             # a strobe always ends a telegram
             self.pc=pc+1; return
         if op in (0xE2,0xE3): self.setA(self.xram[self.getR(op-0xE2)]); self.pc=pc+1; return
         if op in (0xF2,0xF3): self.xram[self.getR(op-0xF2)]=A; self.pc=pc+1; return

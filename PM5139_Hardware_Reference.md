@@ -4724,6 +4724,33 @@ With the machine-cycle counter (section 36.9), taken over a cold start:
 | Sine (computed, with interpolation) | 2050 | 56 850 | **56.9 ms** | 27.7 |
 | Our loader, straight from a ROM table | 2050 | 39 490 | **39.5 ms** | 19.3 |
 
+And the same measurement for a curve coming out of the arbitrary EEPROM,
+which is what selecting an ARB slot does (`ARB_OUTPUT`, 990Bh in V2.0):
+
+| Source | Bytes on the bus | Machine cycles | Real time | MOVX reads |
+|---|---|---|---|---|
+| **ARB slot from the EEPROM** | 2074 | 55 681 | **55.7 ms** | 2345 |
+
+Identical for every slot. The extra 16 ms over our own loader is the
+unpacking: 1280 packed bytes have to be read over MOVX and expanded from
+four values per five bytes into the two-byte wire format.
+
+**16.4 ms is a hard floor**, set by the C-bus at f_osc/12 and 2048 bytes,
+and there is no second RAM page to swap (36.5). So the wavetable cannot
+be exchanged at note rate by any amount of firmware work. At 55.7 ms an
+ARB slot change is 18 per second: fine on a chord change at 120 BPM,
+where it costs a tenth of a quarter note, and impossible per note — a
+sixteenth at 140 BPM is 107 ms and half of it would be silence.
+
+That is what fixes the shape of any synthesizer built on this: the table
+is the **patch**, not the note. The same constraint a PPG Wave had.
+
+| Time scale | Mechanism | Cost | Role |
+|---|---|---|---|
+| per note | retune, ready-made TWS word on STR6 | 139 µs | note on |
+| per note | one STR9 byte | 49 µs | envelope, velocity |
+| per patch | reload the table | 32–56 ms | timbre, program change |
+
 The bus itself would need only 2048 × 8 µs = 16.4 ms; the rest is the
 per-point handshake and the pointer arithmetic. Ours sits between the two
 firmware loops: no interpolation to do, but `PUSH DPL/DPH` around the
@@ -5174,7 +5201,57 @@ inline at 0AACh, while V1.5 and V2.0 split the range-byte computation out
 into 0BBAh, which on its own only returns a value and sends nothing —
 which is why calling *that* looked like a dead end at first.
 
-### 36.9 Machine cycles in the emulators
+### 36.9 The emulators know the analogue side now
+
+Five EPROMs went into the polyphonic player, and the reason was always
+the same: the emulator modelled the CPU and the bus but nothing behind
+them, so it could only confirm that the right bytes went out. Everything
+downstream had to be checked on a scope. That gap is closed for the parts
+whose behaviour was measured.
+
+**Modelled**
+
+| | |
+|---|---|
+| Waveform RAM | 1024 points in `wram`. Two bytes per point out of SBUF, high byte first, latched by the rising edge of DBK on P3.5; a strobe on STR2 resets the address. `wcount` counts the points. |
+| STR6 | the main TWS word: N, exponent and command, and the resulting frequency in `afe.hz` |
+| STR7 | the relay field (bits 3 and 4, 20 dB each) and the DC offset, 64h being the zero line |
+| STR8 | the sweep output DAC |
+| STR9 | the amplitude DAC, seven bits, wrapping above 7Fh |
+| STR1 | the control word, stored raw |
+
+`c.afeState()` prints one line: frequency, how much of full scale the
+table uses, the DAC value, the attenuation and the offset.
+
+**Not modelled, deliberately**
+
+STR3 (pulse generator and amplitude-modulator mux), STR4 (burst counter)
+and STR5 (modulation oscillator) are counted in `afe.seen` but their
+contents are not interpreted. Their telegram layouts were never pinned
+down, and a model that guesses is worse than none — it would agree with
+itself and disagree with the instrument, which is exactly the failure
+mode this whole section is about.
+
+Nor is there a signal path: nothing computes an output waveform from the
+table and the frequency. `polytest.js` now checks the RAM contents
+against what `mkchord.py` generated, which is the check that was missing,
+but whether that table *sounds* right is still a question for a scope.
+
+**Validation.** The model is anchored on the one case known to be right
+on hardware: after the player loads its chord, `wram` holds exactly the
+1024 points `mkchord.py` produced, zero differences. The frequency
+formula reproduces 41.20 Hz and 82.40 Hz, the two values the player is
+known to set.
+
+One thing this brought up. Decoding the *firmware's own* boot download
+with the established byte order gives a repeating four-value staircase,
+not the smooth sine that the opposite order suggested early on. Either
+the firmware's loaders do not all use the same order, or the table loaded
+at boot is not what was assumed in 36.1. **Open**, and worth settling,
+because it is the last place where our reading of the format and the
+firmware's behaviour disagree.
+
+### 36.10 Machine cycles in the emulators
 
 All the times above are measurable only because both emulators now count
 machine cycles as well as instructions. `mcs51.CYCLES` holds the table

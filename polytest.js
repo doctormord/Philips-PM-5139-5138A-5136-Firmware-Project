@@ -98,6 +98,24 @@ console.log('\nfirst 16 points: ' + vals.slice(0, 16).join(' '));
 fs.writeFileSync(P + 'poly_stream.txt', vals.join('\n') + '\n');
 console.log('points written to poly_stream.txt for comparison with mkchord.py');
 
+// --- what the analogue front end would actually be doing ---------------
+// The emulator now models the waveform RAM (STR2 plus the DBK clock on
+// P3.5) and the strobes whose meaning has been measured, so this can be
+// checked here instead of on a scope. STR3, STR4 and STR5 are counted but
+// not interpreted.
+console.log('\nanalogue front end after the load:');
+console.log('  ' + c.afeState());
+const wr = Array.from(c.wram);
+let wrev = 0, wlast = 0;
+for (let i = 1; i < wr.length; i++) { const d = wr[i] - wr[i-1];
+  if (!d) continue; if (wlast && (d > 0) !== (wlast > 0)) wrev++; wlast = d; }
+console.log('  waveform RAM: %d..%d, mean %s, %d direction changes',
+            Math.min(...wr), Math.max(...wr),
+            (wr.reduce((a, b) => a + b, 0) / wr.length).toFixed(1), wrev);
+fs.writeFileSync(P + 'poly_wram.txt', wr.join('\n') + '\n');
+console.log('  contents written to poly_wram.txt — compare with mkchord.py');
+console.log('  strobes seen: %s', JSON.stringify(c.afe.seen));
+
 // --- and now the melody: every call of OUT_FREQ, decoded ---------------
 const FREQ = end > 0xB000 ? 0x0A28 : 0x09BF;   // OUT_FREQ, V1.5/V2.0 or V1.3
 const NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];

@@ -113,3 +113,37 @@ def decode(mem, pc):
     if op in (0x22,0x32): kind='ret'
     if op == 0x73: kind='ijmp'
     return ln, t, tgt, kind
+
+
+# --- machine cycles ---------------------------------------------------
+# One machine cycle is 12 oscillator periods, so at the 12 MHz of the
+# PM5139 (crystal G816 on unit 2) exactly 1 us. The emulators count one
+# tick per *instruction*, which is fine for orderings but wrong by about
+# a factor of two for absolute timings; this table is what makes real
+# times measurable. Figures from the MCS-51 data sheet.
+CYCLES = [1] * 256
+def _c(ops, n):
+    for op in ops: CYCLES[op] = n
+
+_c([0x02, 0x12, 0x22, 0x32], 2)                 # LJMP LCALL RET RETI
+_c([h*0x20 + 0x01 for h in range(8)], 2)        # AJMP
+_c([h*0x20 + 0x11 for h in range(8)], 2)        # ACALL
+_c([0x80, 0x40, 0x50, 0x60, 0x70, 0x73], 2)     # SJMP JC JNC JZ JNZ JMP @A+DPTR
+_c([0x10, 0x20, 0x30], 2)                       # JBC JB JNB
+_c([0xB4, 0xB5, 0xB6, 0xB7], 2)                 # CJNE A / @Ri
+_c(range(0xB8, 0xC0), 2)                        # CJNE Rn
+_c([0xD5], 2); _c(range(0xD8, 0xE0), 2)         # DJNZ direct / Rn
+_c([0x83, 0x93], 2)                             # MOVC
+_c([0xE0, 0xF0, 0xE2, 0xE3, 0xF2, 0xF3], 2)     # MOVX
+_c([0xA3, 0x90], 2)                             # INC DPTR, MOV DPTR,#imm16
+_c([0xC0, 0xD0], 2)                             # PUSH POP
+_c([0x75, 0x85], 2)                             # MOV direct,#imm / direct,direct
+_c(range(0x88, 0x90), 2); _c(range(0xA8, 0xB0), 2)   # MOV direct,Rn / Rn,direct
+_c([0x86, 0x87, 0xA6, 0xA7], 2)                 # MOV direct,@Ri / @Ri,direct
+_c([0x43, 0x53, 0x63], 2)                       # ORL/ANL/XRL direct,#imm
+_c([0x72, 0x82, 0xA0, 0xB0, 0x92], 2)           # ORL/ANL C,bit and MOV bit,C
+_c([0x84, 0xA4], 4)                             # DIV MUL
+
+def cycles(op):
+    """Machine cycles of one instruction, by opcode."""
+    return CYCLES[op]

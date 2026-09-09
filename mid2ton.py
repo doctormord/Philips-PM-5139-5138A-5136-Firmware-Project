@@ -21,7 +21,7 @@ in units of 1.006 ms. A zero byte terminates the table.
 """
 import sys, midi
 
-UNIT_US  = 1006
+UNIT_US  = 1009      # measured, see mkdoom.py
 REST_HZ  = 1.0          # practically inaudible; the output cannot be silent
 KICK_HZ  = 60.0         # kick frequency: a good one period in KICK_MS
 KICK_MS  = 22           # short enough not to chop up the melody

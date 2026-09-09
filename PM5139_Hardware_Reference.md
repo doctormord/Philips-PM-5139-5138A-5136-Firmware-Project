@@ -4603,3 +4603,596 @@ python3 mkv20.py     # curves and version identification
 python3 mkdoom.py    # append the melody, recompute the checksum
 python3 romfix.py M27512_PM5139_V20.bin
 ```
+
+## 36 Polyphony: the instrument is a wavetable DDS
+
+The melody of section 35 is one voice. It need not be, and the reason is
+in the service manual, chapter 3, page 3-1:
+
+> The TWS generates the read addresses 0 to 1023 for the subsequent RAM.
+> Up to the characteristic frequency fchar = 20.48 kHz, all 1024 amplitude
+> samples are generated per output signal period.
+
+> During signal generation, the distinct signal amplitude samples are read
+> out from the RAM. If the basic signal waveform is altered or the duty
+> cycle in the frequency range ≤ 20 kHz is altered, the corresponding
+> amplitude samples are loaded into the RAM by the CPU, then the CPU
+> switches the RAM to read mode again.
+
+So the PM5139 is a 1024-point wavetable synthesiser whose table the CPU
+writes, and the table holds exactly **one period of the output**. A table
+built from a sum of harmonics is therefore still periodic in those 1024
+points — it plays as a chord. Several notes sound at once, at full output
+level, and the CPU does nothing at all while they sound.
+
+Because the partials have to be integer multiples of the table frequency,
+the intervals come out in just intonation. For a sustained chord that is
+the better tuning anyway.
+
+### 36.1 The download format — ten bits per point
+
+Two bytes per point, **high byte first**:
+
+| Byte | Content |
+|---|---|
+| 1 | the upper eight bits |
+| 2 | the two least significant bits, as 00h, 44h, 88h or CCh — the bit pair duplicated into both nibbles |
+
+so `value = (byte1 << 2) | (byte2 >> 6)`, giving **1 … 1023 with 512 as
+the zero line** — the range the arbitrary EEPROM stores as well
+(section 32). The waveform RAM is twelve bits wide (D107 the upper eight,
+D108 the lower four) but the bus drives only ten of them, so the 10-bit
+ARB format wastes nothing; it matches the wire.
+
+> The order was inferred the other way round at first, from decoding the
+> firmware's own download off the bus. It was wrong, and the instrument
+> played the table as noise until it was corrected. Section 36.7 has the
+> test that settled it. The counts below still hold — they say nothing
+> about which byte comes first.
+
+Measured over one complete sine download:
+
+| Quantity | Value |
+|---|---|
+| Distinct low bytes in 1024 points | 4 — `00h 44h 88h CCh`, nothing else |
+| Distinct high bytes | 256 |
+| Reconstructed points modulo 4 | 1024 of 1024 are ≡ 0 |
+| Value range | 4 … 4092 |
+
+Every reconstructed point is a multiple of four and only four distinct
+values ever appear in the low-bit byte, which is what fixes the depth at
+ten bits regardless of the byte order.
+
+### 36.2 The loader frame
+
+`LOAD_SINE` at 3DABh (V1.3) shows the sequence, and it is the same for
+every waveform:
+
+```
+3DAB  MOV C,2Ah.2 / ORL C,2Bh.3 / CLR A / ADDC A,#00h   ; index 0 or 1
+3DB2  LCALL 4321h        ; SETB P1.5, then a 4-byte TWS command on STR6
+3DB5  MOV DPH,#82h / MOVX @DPTR,A     ; a bare strobe on STR2
+3DB9  MOV DPTR,#44A7h    ; the source table
+3DCA  CLR P1.5           ; EN low — the TWS stops reading
+      ... 1024 points, two bytes each ...
+3E01  LJMP 4355h         ; the STR1 word, RAM back into read mode
+```
+
+The setup routine builds the TWS command from a table at 4335h:
+
+```
+4321  SETB  P1.5
+4323  MOV   DPTR,#4335h
+4326  MOVC  A,@A+DPTR
+4327  MOV   14h,A        ; 1Eh for index 0 — the full-table case
+4329  MOV   13h,#00h
+432C  MOV   12h,#20h     ; TWS command 20h
+432F  MOV   11h,#01h
+4332  LJMP  0E54h        ; SEND_STR6
+```
+
+and the finish sends `(00h, 2Ah)` to STR1 through 43ADh — which is
+exactly the two-byte word that closes every waveform download on the bus.
+
+The inner loop at 3D80h shows the timing. The two SBUF writes of a point
+are **hand-padded to exactly eight machine cycles apart** and TI is never
+polled:
+
+```
+3D80  MOV SBUF,R6        2      ; low byte
+3D82  MOV A,R3           1  \
+3D83  NOP x 7            7  /   eight machine cycles = one byte at fosc/12
+3D8A  MOV SBUF,A         1      ; high byte
+...
+3D9D  CLR P3.5 / SETB P3.5      ; DBK clocks the point into the RAM
+3DA1  MOVX A,@DPTR              ; STR0 status, ACC.4 = busy
+3DA2  JB 22h.7,3DA6 / CPL A     ; the expected polarity alternates with
+3DA6  JNB ACC.4,3DA1            ; the point number (22h.7 from R5 bit 0)
+```
+
+That the padding is exactly eight cycles is independent evidence that
+serial mode 0 clocks at f_osc/12 — one bit per machine cycle, 8 µs per
+byte at 12 MHz. The data sheet says so; the firmware bets its timing on it.
+
+### 36.3 Measured cost of a reload
+
+With the machine-cycle counter (section 36.9), taken over a cold start:
+
+| Download | Bytes | Machine cycles | Real time | Per byte |
+|---|---|---|---|---|
+| Fill, all points 2048 (loop 3D80h) | 2050 | 32 342 | **32.3 ms** | 15.8 |
+| Sine (computed, with interpolation) | 2050 | 56 850 | **56.9 ms** | 27.7 |
+| Our loader, straight from a ROM table | 2050 | 39 490 | **39.5 ms** | 19.3 |
+
+The bus itself would need only 2048 × 8 µs = 16.4 ms; the rest is the
+per-point handshake and the pointer arithmetic. Ours sits between the two
+firmware loops: no interpolation to do, but `PUSH DPL/DPH` around the
+status read, because DPH is needed for the strobe address while DPTR
+holds the source pointer.
+
+**There is no second buffer page.** `RAM_PAGE` at 1D62h, whose name
+suggested one, builds the STR1 word out of the *frequency* word 12h/13h
+plus two mode bits — it selects how the TWS reads the table above f_char,
+not which of two buffers is live:
+
+```
+1D62  MOV R0,#0F0h
+1D64  A = (13h & E0h) | (12h & 1Fh), rotated left three times
+1D72  A = (13h & 1Fh) + 08h ; ACC.4 -> 22h.4 ; + E0h ; carry into F0h
+1D81  F1h = 18h, bit 6 from 2Bh.4, bit 0 from 22h.4
+```
+
+So a chord change costs a full reload with the output silent for the
+duration. At 32–40 ms that is fine between phrases and wrong between
+sixteenth notes, which is what shapes the player below.
+
+### 36.4 A polyphonic player: `mkchord.py` and `mkpoly.py`
+
+`mkchord.py` builds the tables. Harmonic numbers over the fundamental,
+in just intonation, summed with a 1/h roll-off and staggered starting
+phases to keep the crest factor down:
+
+| Name | Harmonics | Intervals over the lowest note |
+|---|---|---|
+| `octave` | 1:2 | +1200 ¢ |
+| `fifth` | 2:3 | +702 ¢ |
+| `power` | 2:3:4 | +702, +1200 ¢ |
+| `major` | 4:5:6 | +386, +702 ¢ |
+| `minor` | 10:12:15 | +316, +702 ¢ |
+| `sus4` | 6:8:9 | +498, +702 ¢ |
+| `dom7` | 4:5:6:7 | +386, +702, +969 ¢ |
+| `maj7` | 8:10:12:15 | +386, +702, +1088 ¢ |
+| `min7` | 10:12:15:18 | +316, +702, +1018 ¢ |
+
+`mkpoly.py` puts a table and a melody into the free ROM behind the
+checksum and hooks the same dead self-test entry as `mkdoom.py`. It loads
+the chord once, then plays the melody by retuning only — which transposes
+the whole chord in parallel. The harmony lives in the table, the melody
+in the frequency word, and nothing is reloaded while the music runs.
+
+Every note frequency is divided by the lowest harmonic, so the chord
+lands on the pitch the score asks for: for `power` (2:3:4) an E2 at
+82.41 Hz becomes f0 = 41.205 Hz, and the instrument sounds E2, B2 and E3
+together.
+
+Verification is by construction, because the emulator models no waveform
+RAM: `polytest.js` boots, enters the player, records the telegrams and
+compares the 1024 points arriving on the bus with what `mkchord.py`
+generated.
+
+```
+telegrams emitted by the loader:
+  STR6     4 byte(s)     122 machine cycles  1E 00 20 01
+  STR2     0 byte(s)     132 machine cycles
+  STR1  2050 byte(s)   39490 machine cycles  CC 89 88 8A 44 8B 44 8C ...
+
+  distinct low bytes: 00 44 88 CC
+  points: 1024, range 125..1023, 597 distinct values
+  direction changes: 6
+  -> all 1024 points identical to the table mkchord.py built
+
+the melody, as the player sets it:
+  note  1   f0 = 41.20 Hz   chord 2:3:4 = 82.4 / 123.6 / 164.8 Hz   root E2
+  ...
+  note  8   f0 = 36.71 Hz   chord 2:3:4 = 73.4 / 110.1 / 146.8 Hz   root D2
+```
+
+The riff of section 35 with the same note pattern, but every note now a
+power chord — which is what that riff is made of in the original.
+
+### 36.4.1 Two players
+
+Both live in the free ROM behind the checksum and both hook the same dead
+entry of the self-test jump table (section 35), so an image carries one or
+the other, never both.
+
+| | `mkdoom.py` | `mkpoly.py` |
+|---|---|---|
+| Voices | one | one table, several notes at once |
+| Waveform | whatever is loaded | its own 1024-point chord table |
+| Per note | 50h..52h, then `OUT_FREQ` | the same, and the chord transposes with it |
+| Output level | as the front panel left it | set explicitly, measured 11.6 Vpp |
+| Footprint, built-in tune | 182 bytes | 2449 bytes |
+| Footprint, full MIDI track | about 3.7 KB of notes | **6017 bytes** of the 19509 free |
+
+The polyphonic one costs 272 bytes of code; the rest is 2048 bytes of
+chord table and 3697 bytes of notes. Two thirds of the free area is still
+empty.
+
+Build order:
+
+```bash
+python3 mkv20.py                       # curves and version identification
+
+# monophonic
+python3 mkdoom.py M27512_PM5139_V20.bin mono.bin
+
+# polyphonic, built-in short version
+python3 mkpoly.py --chord power M27512_PM5139_V20.bin poly.bin
+
+# polyphonic, from a MIDI file, upper guitar channel
+python3 mkpoly.py --chord power --midi level1.mid --channel 1 \
+        M27512_PM5139_V20.bin poly.bin
+
+python3 romfix.py poly.bin              # verify the checksum
+node polytest.js poly.bin               # verify on the bus
+```
+
+Useful switches: `--chord` picks the harmony, `--waveform` the RAM
+waveform to route through, `--relay` and `--dac` the output level
+(section 36.8), `--leadin` prepends three seconds of a plain ramp as a
+scope check, and `--matrix`, `--relays`, `--ampmatrix` build the
+diagnostic images described in 36.7 and 36.8.
+
+### 36.5 What the first burn taught us — telegrams, not just bytes
+
+> **Read this together with 36.6.** The explanation reached here — that
+> the waveform RAM feeds the output for only five of the twelve waveforms
+> — did not survive the next measurement: a SINE command loads a
+> 2050-byte table as well, and its STR3 word is identical to HAV's. What
+> stands from this burn is the method and the frequency figures, not the
+> conclusion.
+
+The first EPROM built by `mkpoly.py` ran, but produced no melody: a
+motorboating putt-putt, and on the scope a square-ish fundamental
+chopped at a higher rate. The bus told us the player itself was right —
+
+```
+melody (works):  STR6[62 40 60 01]   N = 4062h = 16482
+poly:            STR6[30 20 60 01]   N = 2030h =  8240   exactly half
+```
+
+— the frequency word is exactly the factor two the chord `power` (2:3:4)
+requires. So what was audible was not our table.
+
+The reason is in section 12, in a sentence written long before any of
+this: **PGS is active for exactly those five waveforms that come out of
+the waveform RAM** — POSSAW, NEGSAW, HAV, SINEPULSE, TRNGLPULSE.
+
+> SINE, TRNGL, SQUARE, POSPULSE and NEGPULSE (bits 2Ah.1 to 2Ah.5) are
+> produced by the TWS directly, ARBIT (2Bh.4) runs through a path of its
+> own and is not part of the expression.
+
+So the waveform RAM feeds the output for **five of the twelve waveforms**,
+not for all of them. After a cold start the selected waveform is SINE
+(2Ah = 02h), which the TWS makes directly — the chord was written into a
+memory nothing was reading, and the instrument played its TWS waveform at
+f0, one octave below the melody. A ~41 Hz tone changing every 107 ms is
+exactly what motorboating sounds like.
+
+This is worth stating plainly because it contradicts the natural reading
+of the service manual quote at the top of this section: the CPU does load
+every waveform into the RAM, but only some waveforms are then *read* from
+it. Loading the table is necessary and not sufficient.
+
+`mkpoly.py` therefore selects the waveform itself before loading:
+
+```
+MOV 2Ah,#00h        ; DC, SINE, TRNGL, SQUARE, both pulses, both sawtooths
+CLR 2Bh.2 / 2Bh.3   ; SINEPULSE, TRNGLPULSE
+CLR 2Bh.4           ; not ARBIT — that would reload from the EEPROM
+CLR 2Bh.1 / SETB 2Bh.1   ; HAV, one of the five
+SETB P3.4           ; PGS, because the expression at 0953h does not run
+                    ; from inside the diagnostic menu
+```
+
+2Bh.6 is deliberately left alone; it is not part of the one-hot waveform
+code. Measured before and after entering menu item 8:
+
+| | 2Ah | 2Bh | selected |
+|---|---|---|---|
+| after cold start | 02h | 40h | SINE — TWS direct |
+| after the selection | 00h | 42h | HAV — reads the RAM |
+
+**Open, to be settled on the instrument:** whether HAV is the best of the
+five for this. All five read the RAM, but they differ in what else the
+firmware does for them (amplitude correction per waveform, the asymmetry
+byte on STR3), and none of that dependent state is set up by the player.
+
+### 36.6 The second burn — a waveform is nineteen telegrams
+
+Selecting a RAM waveform by setting 2Ah/2Bh was still not enough: on the
+instrument the five probe stages produced their five frequencies
+correctly and the shape never changed. Setting those bits is only
+firmware state; the analog routing lives in shift registers.
+
+`cmd16.js` says what a real waveform command costs — 29h = 06h and
+
+```
+token 18h HAV   STR1 STR2 STR3 STR6 STR7 STR9
+```
+
+and recorded in order (V1.3, token 18h) it is **nineteen telegrams**:
+
+| # | | # | | # | |
+|---|---|---|---|---|---|
+| 1 | STR6 `D0 07 20 01` | 8 | STR6 `25 00 20 01` | 15 | STR7 `57 64` |
+| 2 | STR3 `80 01` | 9 | STR2 (bare) | 16 | STR7 `14 64` |
+| 3 | STR9 `00` | 10 | STR1 2050 bytes | 17 | STR7 `14 64` |
+| 4 | STR6 `00 00 00 60` | 11 | STR6 `00 00 00 60` | 18 | STR7 `14 64` |
+| 5 | **STR2 `00 80`** | 12 | STR1 `00 20` | 19 | STR9 `6E` |
+| 6 | STR1 `00 20` | 13 | STR1 `00 19` | | |
+| 7 | STR1 `00 2E` | 14 | STR6 `D0 07 20 01` | | |
+
+The first player sent **three** of these — 8, 9 and 10. Entry 5 is the
+one that hurts: `STR2 00 80` is what puts the waveform RAM into write
+mode. Without it the 2048 bytes go out on the bus and land nowhere,
+which is precisely what the instrument showed.
+
+Two more corrections fell out of the same recording. The setup index is
+waveform specific — the byte comes from the table at 4335h
+(`1E 24 24 25 2C 34 13 1A`) and becomes 14h of a frequency-format TWS
+command, so index 0 (1Eh) is the SINE case, 1 is TRNGL/TRNGLPULSE and
+**3 (25h) is HAV**; the player had hardcoded 0. And the state dispatcher
+at 090Ch/0975h **cannot be called as a subroutine** from the diagnostic
+menu — measured, it never returns and ends in the main loop at 526Eh.
+
+`mkpoly.py` therefore replays the recorded list from a table in ROM with
+its own send routine, substituting our chord for entry 10. Entries 11–14
+are left out because the firmware's finish routine, which the loader
+tail-jumps to, emits them itself. Verified against the recording:
+
+```
+16 of 19 telegrams identical, the rest being one duplicated STR1 00 19
+```
+
+Note also that this recording contradicts the reading in section 12 that
+SINE is produced by the TWS directly: **SINE loads a 2050-byte table
+too**, and its STR3 word (`80 01`) is the same as HAV's. Whatever PGS
+distinguishes, it is not "reads the RAM or not". That question is open
+again.
+
+### 36.7 The wire format, settled on the instrument
+
+The emulator models no waveform RAM, so three burns went by on inference
+alone. The fourth carried a **test suite**: six tables, three seconds
+each at one fixed frequency, each designed so that one glance at a scope
+answers one question. What came back:
+
+| # | Table | Expected if right | Observed |
+|---|---|---|---|
+| 1 | every point 512 | flat line | **flat** |
+| 2 | rising ramp, low byte first | clean sawtooth | noise |
+| 3 | the same ramp, bytes exchanged | noise | **clean falling ramp** |
+| 4 | ramp with the low bit pair zeroed | clean sawtooth | noise |
+| 5 | ramp over 512 points, then flat | ramp then flat | square, low part noisy |
+| 6 | the chord | smooth, six turns | noise, larger amplitude |
+
+Stage 1 proves the bytes reach the converter at all. Stages 3 and 4 settle
+the format between them: in stage 3 the **first** byte carries the ramp
+and the output is clean, in stage 4 the **second** byte carries it and the
+output is noise. So
+
+> the high eight bits go on the bus **first**, the two low bits second.
+
+This is the format section 36.1 now states. It was inferred the other way round from decoding
+the firmware's own download, and the instrument outranks the inference.
+`mkchord.pack()` has been corrected; `polytest.js` decodes accordingly.
+
+Stage 5 is consistent: its first half was a ramp in the wrong order
+(noise) and its second half a constant (flat), which is exactly the
+"square with a noisy low part" that came back. Stage 1 cannot distinguish
+the two orders — a constant is a constant either way — which is why it
+was put first, as a start-of-cycle marker.
+
+The ramp came out **falling** for a rising table, so the converter output
+is inverted. That is left as it is: for a chord it makes no audible
+difference, and inverting the table would only hide the fact.
+
+Why the earlier inference was wrong is still open. Decoding the boot
+download with the low byte first yields a clean 12-bit sine, which is a
+strong-looking result and was accepted too readily; with the byte order
+now established the other way, that decode needs redoing. Section 36.1
+and this section disagree, and the instrument is right.
+
+### 36.8 Setting the amplitude, and where the attenuator really sits
+
+The first working player produced only about 1 Vpp whatever the front
+panel said, because the replayed telegram list carried the amplitude
+bytes recorded from a HAV command, and its first STR7 byte was `14h`.
+
+Driving the output routine over the whole range settles both the encoding
+and a contradiction the documents had carried unresolved (section 20 put
+the attenuator in the first STR7 byte, section 30 on S2..S5 of STR9).
+Measured on V2.0, with 10h poisoned to defeat the "nothing changed" gate:
+
+| 56h | 57h | Nominal | 1Ch | 1Eh | Telegrams |
+|---|---|---|---|---|---|
+| 32h | 00h | 20 V | 64h | 04h | STR7 `04 64`, STR9 `64` |
+| 31h | 00h | 10 V | 32h | 04h | STR7 `04 64`, STR9 `32` |
+| 30h | 50h | 5 V | 19h | 04h | STR7 `04 64`, STR9 `19` |
+| 22h | 00h | 2 V | 64h | 14h | STR7 `14 64`, STR9 `64` |
+| 12h | 00h | 0.2 V | 64h | 1Ch | STR7 `1C 64`, STR9 `64` |
+
+**That reading did not survive the instrument.** Measured on hardware,
+with the front panel at 20 Vpp and the player driven from the diagnostic
+menu:
+
+| What the player sends | Output |
+|---|---|
+| neither STR7 nor STR9 | **8.3 Vpp** |
+| the recorded STR7 block (first byte 14h) | 1 Vpp |
+| STR7 `04 64`, any STR9 | 100 mVpp |
+| the amplitude routine at 0B15h | 50 mVpp |
+
+Every configuration that writes STR7 collapses the output, `04h` included
+— which is the value the table gives for decade 3, the 20 V range. So the
+first STR7 byte is **not** simply the attenuator, and the mapping below is
+recorded as what the table contains, not as an established meaning. Note
+also that at 0B01h the byte is masked with 27h before it is sent, and
+04h, 14h and 1Ch all mask down to the same 04h — so this telegram cannot
+be carrying the range at all. The attenuator is somewhere else.
+
+The relays hold their state, so a wrong write is sticky: after the sweep
+above, going back to the stage that sends nothing restored the frequency
+but not the level.
+
+**What works, and is what `mkpoly.py` does:** send neither STR7 nor STR9
+and leave the amplitude chain exactly as the front panel set it before
+the diagnostic menu was entered. Also measured: our own chord tables have
+a mean of exactly 512.0, i.e. no DC content at all, so the one-sided trace
+seen on the scope comes from the DC generator's state and not from the
+table.
+
+**Settled with a frequency-keyed matrix.** A burn is expensive, so the
+next image packed 31 tests into one and used the *frequency as the test
+number* — test n at 100 + n·10 Hz — so the scope's own read-out says which
+combination is live and nothing has to be counted. A plain triangle was
+used as the waveform because its Vpp is easy to read. Since the relays
+hold their state, the question was not "which is loud" but "where does it
+become loud again". Observed:
+
+| Test | Result | Conclusion |
+|---|---|---|
+| 110 Hz, first STR7 write | **clicks** | STR7's first byte drives relays |
+| 190 Hz, `07h` → `20h` | **clicks** | the relay is **bit 5** |
+| 220 Hz (`23h`) vs 180 Hz (`07h`) | quieter | bit 5 set = attenuated |
+| 220…260 Hz (`23h`…`27h`) | all equal | bits 0…2 have no level effect |
+| 330 Hz (`00 C0`) vs 340 Hz (`00 FF`) | rises | **STR9's second byte is a monotonic amplitude DAC** |
+| 350/360/370 Hz (`80/F8/07` + `FF`) | all equal | STR9's **first** byte has no level effect |
+| 390 Hz (`FF` single) vs 400 Hz (`37` single) | rises | a **single** STR9 telegram already sets the level — the pair is not needed |
+| the whole 300 range | no relay clicks | STR9 is a pure DAC, nothing mechanical |
+| 270/280/290 Hz (`18h`, `20h`, `14h`) | **all click** | the relay field is **bits 3, 4 and 5**, not bit 5 alone |
+
+So the model is:
+
+* **STR9, second byte** — the amplitude DAC, monotonic over 00h…FFh. One
+  telegram — a single one is enough, the pair is not required — with no
+  relays and no range switching. At the measured 49 µs for a one-byte STR9
+  telegram, a 1 kHz envelope costs about 5 % of the CPU. **This is the
+  envelope primitive.**
+* **STR9, first byte** — no audible effect. Section 30's reading, that
+  S1..S5 and the low DAC bits sit here, does not hold for the level.
+**Measured completely, 30 s per step, DAC at full scale:**
+
+| bits 5-4-3 | STR7 | Vpp | |
+|---|---|---|---|
+| 000 | `04h` | 120 mV | both attenuators in, −40 dB |
+| 001 | `0Ch` | 1.2 V | one bypassed |
+| 010 | `14h` | 1.2 V | the other bypassed |
+| **011** | **`1Ch`** | **11.6 V** | **both bypassed, 0 dB** |
+| 1xx | +20h | unchanged | bit 5 costs no level (it clicks — most likely K403, the 50/600 Ω relay, invisible to a high-impedance probe) |
+
+So bits 3 and 4 are **two separate 20 dB stages**, which is why 001 and
+010 measure the same and switching between them clicks. And the ROM table
+`04 1C 14 04` reads the opposite way from what section 20 recorded:
+**04h is the most attenuated value and 1Ch the least** — they are bypass
+bits, not enable bits. 11.6 V is also more than the 8.2 V the front panel
+was giving, so the instrument can be driven harder from here than through
+the panel.
+
+**The DAC is effectively seven bits.** Same run, relays fixed:
+
+| DAC | 00h | 20h | 40h | 60h | 80h | A0h | C0h | FFh |
+|---|---|---|---|---|---|---|---|---|
+| Vpp | 0 | 40 mV | 66 mV | 100 mV | **0** | 40 mV | 62 mV | 120 mV |
+
+It wraps at 80h and starts over, so the usable range is 00h…7Fh and it is
+roughly linear inside it. The firmware never leaves that range — it
+computes 1Ch = 64h for a full 20 Vpp — which is why the wrap had never
+shown up. Writing FFh, as an earlier build did, folds back to 7Fh.
+
+* **STR7, first byte, bits 3, 4 and 5** — the relay field, three bits,
+  which fits K401…K404. Bits 0…2 do nothing to the level. The first pass
+  of the matrix only covered `00h`…`07h` and `20h`…`27h`, which never set
+  bits 3 or 4, and the absence of clicks there was briefly mistaken for
+  "bit 5 alone" — the boot values `18h`, `20h` and `14h` at 270/280/290 Hz
+  clicked and corrected it.
+* This also explains the 27h mask at 0B01h: `27h` does not pass bits 3
+  and 4, so that telegram cannot set the attenuator at all.
+* Writing STR7 at all is therefore best avoided unless the relay state is
+  meant to change; `mkpoly.py` leaves it alone and sets the level with a
+  single STR9 pair.
+
+The table below is retained as raw data for whoever picks this up:
+
+| Decade | 1Eh | Attenuation |
+|---|---|---|
+| 3 | 04h | 0 dB |
+| 2 | 14h | 20 dB |
+| 1 | 1Ch | 40 dB |
+
+and the amplitude in volts is `W · 10^(decade−4)` with W the three BCD
+digits spread over 56h (hundreds) and 57h (tens, units). STR9 carries the
+fine value 1Ch, which is `W / 2` before the per-waveform correction of
+AMPL_CORRECT — for HAV it comes out at 48h rather than 64h.
+
+**The gate.** Writing 56h/57h and calling the routine does nothing on its
+own. At 0B25h (V2.0) it does
+
+```
+0B25  MOV A,10h / MOV 1Bh,A / XRL A,1Eh / JZ 0B9Eh
+```
+
+— 10h holds the range byte last sent, and if it matches the newly
+computed one the routine returns silently. Poisoning 10h with any other
+value forces the output. That is the whole recipe:
+
+```
+MOV 56h,#<decade and hundreds>
+MOV 57h,#<tens and units>
+MOV 10h,#0AAh          ; defeat the "nothing changed" gate
+LCALL 0B15h            ; V1.5/V2.0; V1.3 is built differently
+```
+
+`encode_volts()` in `mkpoly.py` reproduces the firmware's own byte pairs
+(20 V → 32h 00h, 10 V → 31h 00h, 5 V → 30h 50h) and the routine does emit
+telegrams once the gate is defeated — but on the instrument the result is
+50 mVpp, so something in the sequence is still wrong. **The amplitude
+question is therefore open, not closed**, and the synthesizer backlog
+entry still needs it: an envelope cannot be built on a call whose effect
+is not understood.
+
+Note the routine at 0B15h is version specific: V1.3 has the whole thing
+inline at 0AACh, while V1.5 and V2.0 split the range-byte computation out
+into 0BBAh, which on its own only returns a value and sends nothing —
+which is why calling *that* looked like a dead end at first.
+
+### 36.9 Machine cycles in the emulators
+
+All the times above are measurable only because both emulators now count
+machine cycles as well as instructions. `mcs51.CYCLES` holds the table
+from the MCS-51 data sheet (162 opcodes at one cycle, 92 at two, `MUL`
+and `DIV` at four); `core.js` carries the same 256 entries as a string
+and `cyclecheck.py` refuses to let the two drift apart.
+
+The counter is `mcyc` in both cores and is **purely observational** — it
+drives no timer and no serial model, so every measurement taken before it
+existed still reproduces exactly.
+
+Anchor: stepping the wait loop of `mkdoom.py` reports
+
+| Address | Executions | Cycles |
+|---|---|---|
+| `MOV R6,#02h` | 1 | 1 |
+| `MOV R7,#0FAh` | 2 | 2 |
+| `DJNZ R7` | 500 | 1000 |
+| `DJNZ R6` | 2 | 4 |
+| `DJNZ R5` | 1 | 2 |
+| | | **1009** |
+
+so one unit is **1009 µs**, not the 1006 the source assumed — that figure
+dropped the `MOV R6` and the `DJNZ R5`. `mkdoom.py` and `mid2ton.py` have
+been corrected. Over a whole cold start the ratio comes out at **1.862
+machine cycles per instruction**, which is the factor by which every
+instruction-count timing in this document was short.

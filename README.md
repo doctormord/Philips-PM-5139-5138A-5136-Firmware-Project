@@ -27,6 +27,7 @@ this project.*
 - [The good bits](#the-good-bits)
 - [Firmware V2.0 — what is new](#firmware-v20--what-is-new)
 - [The easter egg](#the-easter-egg)
+- [And then it turned out to be polyphonic](#and-then-it-turned-out-to-be-polyphonic)
 - [Six arbitrary waveforms of our own](#six-arbitrary-waveforms-of-our-own)
 - [The browser simulator](#the-browser-simulator)
 - [Repository layout](#repository-layout)
@@ -342,15 +343,122 @@ So the whole hook is **two bytes**:
 No self-test is lost, no table is relocated, and no dead menu item
 appears. Hold LOCAL, switch on, let the menu count to 8, press a key.
 
-The timing follows the MCS-51 data sheet, not the emulator — `core.js`
-counts one cycle per *instruction*, which is fine for ordering but wrong
-for absolute time. The wait loop is dimensioned for 1.006 ms per unit,
-giving 107.6 ms per sixteenth note at 140 BPM (0.4 % off target).
+The timing comes from the MCS-51 data sheet. Both emulators now count
+machine cycles alongside instructions (`mcyc`, from `mcs51.CYCLES`), and
+stepping the wait loop measures **1009 µs** per unit — 106.95 ms per
+sixteenth note at 140 BPM, 0.2 % off target. The figure used to be a hand
+calculation of 1006 µs that had dropped two instructions.
 
-`mkdoom.py` can also convert a MIDI file. The generator is monophonic, so
-a voice has to be picked (highest note, lowest note, or one channel) and
-sections shorter than ~25 ms merged — below that a low note doesn't
-manage a full oscillation and you only hear a click.
+`mkdoom.py` can also convert a MIDI file. A voice has to be picked
+(highest note, lowest note, or one channel) and sections shorter than
+~25 ms merged — below that a low note doesn't manage a full oscillation
+and you only hear a click.
+
+---
+
+## And then it turned out to be polyphonic
+
+The melody above is one voice. It does not have to be, and the reason is
+a sentence in the service manual we had read past:
+
+> During signal generation, the distinct signal amplitude samples are read
+> out from the RAM. If the basic signal waveform is altered [...] the
+> corresponding amplitude samples are **loaded into the RAM by the CPU**.
+
+The PM5139 is a **1024-point wavetable DDS**. The TWS is not a triangle
+generator in any naive sense — it is a phase accumulator that produces
+read addresses 0…1023 for a fast RAM on unit 4, and that RAM is filled by
+the CPU over the C-bus. Sine, square, sawtooth and arbitrary are all the
+same mechanism: a table.
+
+And the table holds exactly **one period of the output**. So a table built
+from a *sum of harmonics* is still periodic in its 1024 points, and it
+plays as a chord. Not an arpeggio, not a modulation trick — several notes
+sounding at once at the full 20 Vpp, with the CPU doing nothing at all
+while they sound. Because the partials must be integer multiples of the
+table frequency, the intervals come out in just intonation, which for a
+sustained chord is the better tuning anyway.
+
+```
+python3 mkpoly.py --chord power --midi level1.mid --channel 1 \
+        M27512_PM5139_V20.bin out.bin
+```
+
+`mkchord.py` builds the tables — `power` (2:3:4), `major` (4:5:6),
+`minor` (10:12:15), `dom7` (4:5:6:7) and five more. `mkpoly.py` puts one
+in the free ROM together with the melody and hooks the same dead menu
+entry. It loads the chord **once**, then plays the melody by retuning
+only, which transposes the whole chord in parallel. Every note of the
+E1M1 riff becomes a power chord — which is what that riff is made of in
+the original.
+
+Architecturally this is a PPG Wave: a counter running through a
+single-cycle waveform, straight into a DAC. The chord trick is the one
+Amiga trackers used — put the chord into the waveform so one voice plays
+three notes instead of spending three channels on it. A C64 has to
+arpeggio instead, because the SID has no writable wavetable.
+
+There are two players and an image carries one or the other, since both
+hook the same menu entry:
+
+| | `mkdoom.py` | `mkpoly.py` |
+|---|---|---|
+| Voices | one | several at once |
+| Waveform | whatever is loaded | its own chord table |
+| Level | as the front panel left it | set explicitly, 11.6 Vpp measured |
+| ROM used | 182 bytes | 6017 of the 19509 free |
+
+Two measurements shaped that design:
+
+* The download format carries **ten bits per point**, not twelve: only
+  four distinct low bytes ever appear (`00h 44h 88h CCh`) and every
+  reconstructed value is a multiple of four. The waveform RAM is twelve
+  bits wide, but the bus drives ten — exactly what the ARB format stores,
+  so Philips wasted nothing there.
+* A full table reload is **32 to 40 ms** with the output silent, and there
+  is **no second buffer page** — `RAM_PAGE` at 1D62h, which sounds like
+  one, builds its word from the frequency. So the harmony lives in the
+  table and the melody in the frequency word; nothing is reloaded while
+  the music runs.
+
+The emulator models no waveform RAM, so the loader is verified by
+construction instead: `polytest.js` records what actually reaches the bus
+and compares all 1024 points against what `mkchord.py` generated.
+
+It took five EPROMs to get there, and the emulator could only get us part
+of the way: it models the CPU and the bus but not the waveform RAM, so all
+it can confirm is that the same bytes go out as the firmware sends. That
+is necessary and not sufficient. Three things had to be settled on the
+instrument itself:
+
+* **The byte order.** Two bytes per point, high byte first. Inferring it
+  from the firmware's own download gave the opposite answer and the table
+  came out as noise. What settled it was one EPROM carrying six test
+  patterns — a flat line, a ramp, the same ramp with the bytes of each
+  point exchanged, and three more — and a look at a scope. The swapped
+  ramp was the clean one.
+* **A waveform change is nineteen telegrams**, not the three the first
+  player sent. The one that matters is a two-byte write that puts the RAM
+  into write mode; without it 2048 bytes go out on the bus and land
+  nowhere.
+* **The output level.** The attenuator is two separate 20 dB relay stages
+  in one byte, the ROM table for them reads inverted from how it had been
+  documented (they are bypass bits), and the level DAC is seven bits, not
+  eight — it wraps at 80h, so one "louder" setting produced silence. That
+  one took a matrix of about thirty combinations in a single image, using
+  the **output frequency as the test number** so the scope's own readout
+  says which combination is live.
+
+```
+telegrams emitted by the loader:
+  STR6     4 byte(s)     122 machine cycles  1E 00 20 01
+  STR2     0 byte(s)     132 machine cycles
+  STR1  2050 byte(s)   39490 machine cycles  CC 89 88 8A 44 8B 44 8C ...
+  -> all 1024 points identical to the table mkchord.py built
+
+  note  1   f0 = 41.20 Hz   chord 2:3:4 = 82.4 / 123.6 / 164.8 Hz   root E2
+  note  8   f0 = 36.71 Hz   chord 2:3:4 = 73.4 / 110.1 / 146.8 Hz   root D2
+```
 
 ---
 
@@ -439,10 +547,11 @@ Analysis
 
 Building
   romfix.py mkv20.py mkarb.py waveforms.py asm51.py mkdoom.py
-  midi.py mid2ton.py
+  midi.py mid2ton.py mkchord.py mkpoly.py
 
 Measurement scripts          (see "Using the tools")
   bitmap.js flags.js cmd16.js iface.js trace.js arb.js xrange.js
+  polytest.js cyclecheck.py
   limits.js param.js keycodes.js decade.js whoruns.js remote.js
   display.js digits.js readout.js nvram.js nv2.js nv3.js …
 ```
@@ -496,6 +605,15 @@ node doomtest.js M27512_PM5139_V20_melody.bin           # play it back in the em
 
 `mkdoom.py` patches an image once and refuses to do it twice — build a
 fresh V2.0 with `mkv20.py` if you want to start over.
+
+### Play a chord
+
+```bash
+python3 mkchord.py                                    # the chords on offer
+python3 mkpoly.py --chord power M27512_PM5139_V20.bin out.bin
+python3 romfix.py out.bin
+node polytest.js out.bin                              # check it on the bus
+```
 
 ### Plot
 

@@ -153,11 +153,19 @@ same code as in the real instrument.</p>
 </p>
 
 <script>
+// Machine cycles per opcode, indexed by opcode byte. One machine cycle is
+// 12 oscillator periods, so at the 12 MHz of the PM5139 exactly 1 us.
+// Mirrors mcs51.CYCLES; cyclecheck.py verifies that the two agree.
+var MCYC=('1221111111111111222111111111111122211111111111112221111111111111'+
+          '2212111111111111221211111111111122121111111111112222121111111111'+
+          '2222422222222222222211111111111122124122222222222211222222222222'+
+          '2211111111111111221112112222222222221111111111112222111111111111'
+         ).split('').map(Number);
 // ---- MCS-51 core + PM5139 peripherals ------------------------------------
 function CPU(rom){
   this.rom=rom; this.ram=new Uint8Array(256); this.sfr=new Uint8Array(256);
   this.xram=new Uint8Array(0x8000); this.nv=new Uint8Array(256);
-  this.pc=0; this.sfr[0x81]=0x6B; this.cycles=0; this.inIsr=false;
+  this.pc=0; this.sfr[0x81]=0x6B; this.cycles=0; this.mcyc=0; this.inIsr=false;
   this.p33=0; this.ktg=0; this.wave=[]; this.wi=0; this.itg=1; this.idr=0; this.kn=[]; this.ki=0; this.strobe=0; this.tiAt=-1;
   this.sda=1; this.act=false; this.stage=null; this.dir='w'; this.nb=0; this.sh=0;
   this.ph='bits'; this.sel=false; this.mack=true; this.tx=0; this.ptr=0; this.dev=0;
@@ -280,6 +288,7 @@ CPU.prototype.irq=function(){
   if(src<0)return;
   this.sfr[0x88]&=~clr&255;
   this.push(this.pc&255); this.push((this.pc>>8)&255); this.pc=src; this.inIsr=true;
+  this.mcyc+=2;      // the vector fetch costs as much as an LCALL
 };
 // ---- instruction execution ------------------------------------------------
 CPU.prototype.step=function(){
@@ -329,7 +338,7 @@ CPU.prototype.step=function(){
   else if(op===0x20||op===0x30){var v=this.bg(b1); this.pc=((op===0x20)?v:!v)?pc+3+rel(b2):pc+3;}
   else if(op===0x10){var v=this.bg(b1); if(v){this.bs(b1,0);this.pc=pc+3+rel(b2);}else this.pc=pc+3;}
   else this.g2(op,pc,b1,b2,rel,src,A,lo,hi);
-  this.tick(); this.irq();
+  this.mcyc+=MCYC[op]; this.tick(); this.irq();
 };
 CPU.prototype.g2=function(op,pc,b1,b2,rel,src,A,lo,hi){
   var r;

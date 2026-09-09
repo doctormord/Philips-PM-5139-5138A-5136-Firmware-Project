@@ -1,11 +1,14 @@
 """A minimal MCS-51 interpreter for the PM5139 firmware."""
+import mcs51
+
 class CPU:
     def __init__(self, rom):
         self.rom = rom
-        self.ram = bytearray(256)      # internes RAM 00-FF (indirekt)
-        self.sfr = bytearray(256)      # direkt >= 80h
-        self.xram = bytearray(0x10000) # externes RAM / EEPROM
+        self.ram = bytearray(256)      # internal RAM 00h-FFh (indirect)
+        self.sfr = bytearray(256)      # direct >= 80h
+        self.xram = bytearray(0x10000) # external RAM / EEPROM
         self.pc = 0
+        self.ticks = 0; self.mcyc = 0
         self.sfr[0x81] = 0x6B          # SP
         self.trace_xram = []
         self.calls = 0
@@ -18,7 +21,7 @@ class CPU:
         v &= 0xFF
         if a >= 0x80:
             self.sfr[a] = v
-            if a == 0x99: self.ti_at = getattr(self,'ticks',0) + 12  # sending takes time
+            if a == 0x99: self.ti_at = self.ticks + 12  # sending takes time
         else: self.ram[a] = v
     def iget(self, a): return self.ram[a]
     def iset(self, a, v): self.ram[a] = v & 0xFF
@@ -58,7 +61,7 @@ class CPU:
     # --- execution ------------------------------------------------
     def step(self):
         # a rough model of the peripherals: timers run, the transmitter finishes at once
-        self.ticks = getattr(self, 'ticks', 0) + 1
+        self.ticks += 1
         if not getattr(self,'real_timers',False) and self.ticks & 0x1F == 0:
             t = self.sfr[0x88]                 # TCON
             if t & 0x10: self.sfr[0x88] = t | 0x20   # TR0 -> TF0
@@ -67,6 +70,10 @@ class CPU:
         if getattr(self,'ti_at',None) is not None and self.ticks >= self.ti_at:
             self.sfr[0x98] |= 0x02; self.ti_at = None
         m = self.rom; pc = self.pc; op = m[pc]
+        # Machine cycles alongside the instruction count: one machine cycle is
+        # 12 oscillator periods, so 1 us at the 12 MHz of the PM5139. Purely
+        # observational — it drives nothing, exactly as in core.js.
+        self.mcyc += mcs51.CYCLES[op]
         lo = op & 0x0F; hi = op & 0xF0
         def b1(): return m[(pc+1) & 0xFFFF]
         def b2(): return m[(pc+2) & 0xFFFF]

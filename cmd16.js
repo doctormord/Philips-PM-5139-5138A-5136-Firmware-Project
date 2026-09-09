@@ -22,6 +22,8 @@ function call(c,addr,max,rec){
       if(op===0xF5 && ROM[c.pc+1]===0x99) buf.push(c.sfr[0xE0]);
       else if(op===0x85 && ROM[c.pc+2]===0x99) buf.push(c.ram[ROM[c.pc+1]]);
       else if(op===0x75 && ROM[c.pc+1]===0x99) buf.push(ROM[c.pc+2]);
+      else if(op>=0x88 && op<=0x8F && ROM[c.pc+1]===0x99) buf.push(c.gR(op-0x88));
+      else if((op===0x86||op===0x87) && ROM[c.pc+1]===0x99) buf.push(c.ram[c.gR(op-0x86)]);
       else if(op===0xF0){ const dph=c.sfr[0x83];
         if(dph>=0x81&&dph<=0x8F){ const k=dph&15;
           if(!rec.has(k)) rec.set(k,[]);

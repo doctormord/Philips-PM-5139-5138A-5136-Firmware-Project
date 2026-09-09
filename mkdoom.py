@@ -23,13 +23,14 @@ import romfix, asm51, mcs51
 # given directly in milliseconds.
 E2, D2, C2, B1, As1 = 82.41, 73.42, 65.41, 61.74, 58.27
 BPM = 140
-# One unit of the wait loop takes 1006 us on real hardware:
-#   R6=2 times ( MOV R7 = 1 + 250 times DJNZ = 500 + DJNZ R6 = 2 ) machine
-#   cycles, and at 12 MHz one machine cycle is 1 us (MCS-51 data sheet).
-# Careful: core.js counts one cycle per *instruction* and therefore
-# reports only about half the time — for absolute timings the emulator is
-# not authoritative here, the design follows the data sheet.
-UNIT_US = 2 * (1 + 250*2 + 2)        # = 1006
+# One unit of the wait loop takes 1009 us on real hardware:
+#   MOV R6 = 1, then twice ( MOV R7 = 1 + 250 times DJNZ = 500 + DJNZ R6
+#   = 2 ), then DJNZ R5 = 2 machine cycles; at the 12 MHz of crystal G816
+#   one machine cycle is 1 us (MCS-51 data sheet).
+# This used to read 1006, which dropped the MOV R6 and the DJNZ R5. The
+# figure is now measured: mcs51.CYCLES gives both emulators a machine-cycle
+# counter, and stepping this very loop reports 1009 (see section 35).
+UNIT_US = 1 + 2 * (1 + 250*2 + 2) + 2        # = 1009
 S = round(60000 / BPM / 4 * 1000 / UNIT_US)   # a sixteenth, in units
 def bar(last):                       # seven E, then the turning note
     return [(E2, S)]*7 + [(last, S)]

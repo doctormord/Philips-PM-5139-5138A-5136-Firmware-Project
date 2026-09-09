@@ -55,11 +55,15 @@ call the routine directly, vary the input values, check the output
 against the assumption. That worked for frequency, amplitude, offset,
 AM, FM, burst and symmetry, and it is the fastest route.
 
-**The emulator counts instructions, not machine cycles.** `core.js`
-increments `cycles` once per instruction (line 105). For orderings and
-instruction counts that is equivalent, for **absolute timing it is
-not** — there the MCS-51 data sheet applies (at 12 MHz one machine
-cycle is 1 µs, `DJNZ` needs two). See section 35.
+**Two counters: `cycles` is instructions, `mcyc` is machine cycles.**
+`core.js` and `emu.py` both increment `cycles` once per instruction, which
+is right for orderings and instruction counts but short by a factor of
+1.862 over a cold start. For **absolute timing use `mcyc`**, fed from
+`mcs51.CYCLES` (MCS-51 data sheet); at the 12 MHz of crystal G816 one
+machine cycle is exactly 1 µs. `mcyc` is observational only — it drives
+no timer and no serial model, so older measurements still reproduce.
+`cyclecheck.py` keeps the table in `core.js` in step with `mcs51.py`.
+See sections 35 and 36.
 
 **Rule out your own mistakes first.** Three emulator bugs caused
 seemingly inexplicable behaviour in this project: `ACALL` executed as
@@ -90,6 +94,10 @@ the other way round: when the listing does not help, measure.
 | `romfix.py` | check and correct the checksum |
 | `mkv20.py` | builds our own version V2.0 (de-noised arbitrary curve 3) |
 | `asm51.py`, `mkdoom.py` | mini assembler and melody extension in the free ROM |
+| `mkchord.py` | chord wavetables: harmonics summed over one table period |
+| `mkpoly.py` | polyphonic player — loads a chord, then plays the melody |
+| `polytest.js` | checks the player: telegrams, points, chord frequencies |
+| `cyclecheck.py` | the machine-cycle tables of both emulators must agree |
 | `plot_waveforms.py`, `plot_v20.py`, `plot_arb.py` | plot the waveform tables, compare versions |
 | `waveforms.py`, `mkarb.py` | generate own waveforms and write them into the ARB EEPROM |
 | `lines.py` | read the wires off a schematic sheet (segments instead of eyeballing) |
@@ -139,6 +147,9 @@ followed by `MOVX @DPTR,A` triggers STRn, 80h is the idle output.
   `PM5139_Changelog_V13_V15.md`.
 - New findings belong in `PM5139_Hardware_Reference.md`, with a code
   excerpt and a measurement table.
+- Watching the C-bus means catching **all** the forms that write SBUF, the
+  `MOV SBUF,Rn` one included — the waveform download loop at 3D80h
+  alternates it with `MOV SBUF,A`, and missing it halves every telegram.
 - Strike finished backlog items, add new questions.
 - Always carry emulator changes through both cores, Python and
   JavaScript, otherwise the results drift apart.

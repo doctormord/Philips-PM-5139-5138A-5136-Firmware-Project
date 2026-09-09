@@ -1,7 +1,10 @@
 // P6: the effect of the state bits 20h-2Fh.
 // Watches two quantities at once: the display buffer 30h-43h and the
 // telegrams on the serial C-bus (MOV SBUF,... collects the bytes, a
-// MOVX @DPTR with DPH=8nh terminates the telegram with strobe n).
+// MOVX @DPTR with DPH=8nh terminates the telegram with strobe n). All five
+// forms that can write SBUF have to be caught: the waveform download loop
+// at 3D80h alternates MOV SBUF,R6 with MOV SBUF,A, so watching only the
+// accumulator form halves every telegram it emits.
 // At rest the firmware sends nothing, so every run gets a stimulus. And
 // because a flag only takes effect in the matching operating mode, every
 // flag runs through several profiles.
@@ -56,6 +59,8 @@ function drive(c,steps){
       if(op===0xF5 && ROM[c.pc+1]===0x99) buf.push(c.sfr[0xE0]);
       else if(op===0x85 && ROM[c.pc+2]===0x99) buf.push(c.ram[ROM[c.pc+1]]);
       else if(op===0x75 && ROM[c.pc+1]===0x99) buf.push(ROM[c.pc+2]);
+      else if(op>=0x88 && op<=0x8F && ROM[c.pc+1]===0x99) buf.push(c.gR(op-0x88));
+      else if((op===0x86||op===0x87) && ROM[c.pc+1]===0x99) buf.push(c.ram[c.gR(op-0x86)]);
       else if(op===0xF0){ const dph=c.sfr[0x83];
         if(dph>=0x81 && dph<=0x8F){ const k='STR'+(dph&15);
           if(!rec.has(k)) rec.set(k,new Set());

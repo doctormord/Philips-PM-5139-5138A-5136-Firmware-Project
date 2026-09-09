@@ -11,6 +11,16 @@ as the counter-check by translating the result back.
     code = asm.finish()
 """
 import re
+import mcs51
+
+# Names resolved out of mcs51.py so the two files cannot drift apart.
+_SFR = {name: addr for addr, name in mcs51.SFR.items()}
+_BIT = {name: addr for addr, name in mcs51.BITNAMES.items()}
+# the bit-addressable SFRs, so P1.5 or ACC.4 can be written directly
+for _a in (0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC8, 0xD0, 0xE0, 0xF0):
+    for _n in range(8):
+        _BIT.setdefault('%s.%d' % (mcs51.SFR.get(_a, 'SFR_%02X' % _a), _n), _a + _n)
+
 
 class Asm:
     def __init__(self, base):
@@ -25,6 +35,26 @@ class Asm:
     def db(self, *values):
         for v in values:
             self.out.append(v & 0xFF)
+
+    def _direct(self, s):
+        """A direct address: 99h, or an SFR by name such as SBUF or P1."""
+        s = s.strip()
+        if s in _SFR:
+            return _SFR[s]
+        return self._number(s)
+
+    def _bitaddr(self, s):
+        """A bit address: TI, P1.5, ACC.4 or 22h.7."""
+        s = s.strip()
+        if s in _BIT:
+            return _BIT[s]
+        m = re.fullmatch(r'([0-9A-F]{2})h\.([0-7])', s)
+        if m:                                  # 20h..2Fh are bit addressable
+            base = int(m.group(1), 16)
+            if not 0x20 <= base <= 0x2F:
+                raise SystemExit('%s is not in the bit-addressable RAM' % s)
+            return (base - 0x20) * 8 + int(m.group(2))
+        raise SystemExit('unknown bit: %r' % s)
 
     def _number(self, s):
         s = s.strip()
@@ -52,6 +82,23 @@ class Asm:
         if m:
             self.out.append(0xD8 | int(m.group(1))); self._target(m.group(2), 'rel')
             return
+        m = re.fullmatch(r'(JB|JNB|JBC) (\S+),(\S+)', t)
+        if m:
+            self.out.append({'JB': 0x20, 'JNB': 0x30, 'JBC': 0x10}[m.group(1)])
+            self.db(self._bitaddr(m.group(2)))
+            self._target(m.group(3), 'rel'); return
+        m = re.fullmatch(r'CJNE A,#(\S+),(\S+)', t)
+        if m:
+            self.out.append(0xB4); self.db(self._number(m.group(1)))
+            self._target(m.group(2), 'rel'); return
+        m = re.fullmatch(r'CJNE R([0-7]),#(\S+),(\S+)', t)
+        if m:
+            self.out.append(0xB8 | int(m.group(1))); self.db(self._number(m.group(2)))
+            self._target(m.group(3), 'rel'); return
+        m = re.fullmatch(r'DJNZ (\S+h),(\S+)', t)
+        if m:
+            self.out.append(0xD5); self.db(self._direct(m.group(1)))
+            self._target(m.group(2), 'rel'); return
         m = re.fullmatch(r'JZ (\S+)', t)
         if m:
             self.out.append(0x60); self._target(m.group(1), 'rel'); return
@@ -66,21 +113,56 @@ class Asm:
             'PUSH DPH': [0xC0, 0x83], 'PUSH DPL': [0xC0, 0x82],
             'POP DPL': [0xD0, 0x82], 'POP DPH': [0xD0, 0x83],
             'PUSH ACC': [0xC0, 0xE0], 'POP ACC': [0xD0, 0xE0],
+            'MOVX @DPTR,A': [0xF0], 'MOVX A,@DPTR': [0xE0],
+            'CLR C': [0xC3], 'SETB C': [0xD3], 'CPL C': [0xB3],
+            'CPL A': [0xF4], 'RR A': [0x03], 'RL A': [0x23],
+            'RRC A': [0x13], 'RLC A': [0x33], 'SWAP A': [0xC4],
+            'INC A': [0x04], 'DEC A': [0x14],
         }
         if t in tab:
             self.db(*tab[t]); return
+        m = re.fullmatch(r'(CLR|SETB|CPL) (\S+\.\S+|[A-Z][A-Z0-9]*)', t)
+        if m and m.group(2) not in ('A', 'C'):
+            self.out.append({'CLR': 0xC2, 'SETB': 0xD2, 'CPL': 0xB2}[m.group(1)])
+            self.db(self._bitaddr(m.group(2))); return
+        m = re.fullmatch(r'MOV (\S+),C', t)
+        if m and m.group(1) not in ('A',):
+            self.out.append(0x92); self.db(self._bitaddr(m.group(1))); return
+        m = re.fullmatch(r'MOV C,(\S+)', t)
+        if m:
+            self.out.append(0xA2); self.db(self._bitaddr(m.group(1))); return
+        m = re.fullmatch(r'(ORL|ANL|XRL|ADD|SUBB) A,#(\S+)', t)
+        if m:
+            self.out.append({'ORL': 0x44, 'ANL': 0x54, 'XRL': 0x64,
+                             'ADD': 0x24, 'SUBB': 0x94}[m.group(1)])
+            self.db(self._number(m.group(2))); return
+        m = re.fullmatch(r'MOV A,#(\S+)', t)
+        if m:
+            self.out.append(0x74); self.db(self._number(m.group(1))); return
+        m = re.fullmatch(r'MOV (\S+),#(\S+)', t)
+        if m and m.group(1) != 'DPTR' and not re.fullmatch(r'R[0-7]', m.group(1)):
+            self.out.append(0x75); self.db(self._direct(m.group(1)))
+            self.db(self._number(m.group(2))); return
+        m = re.fullmatch(r'(INC|DEC) R([0-7])', t)
+        if m:
+            self.out.append((0x08 if m.group(1) == 'INC' else 0x18) | int(m.group(2)))
+            return
+        m = re.fullmatch(r'(INC|DEC) (\S+h)', t)
+        if m:
+            self.out.append(0x05 if m.group(1) == 'INC' else 0x15)
+            self.db(self._direct(m.group(2))); return
         m = re.fullmatch(r'MOV DPTR,#(\S+)', t)
         if m:
             self.out.append(0x90); self._target(m.group(1), 'abs16'); return
         m = re.fullmatch(r'MOV R([0-7]),#(\S+)', t)
         if m:
             self.out.append(0x78 | int(m.group(1))); self.db(self._number(m.group(2))); return
-        m = re.fullmatch(r'MOV ([0-9A-F]{2}h),A', t)
-        if m:
-            self.out.append(0xF5); self.db(self._number(m.group(1))); return
-        m = re.fullmatch(r'MOV A,([0-9A-F]{2}h)', t)
-        if m:
-            self.out.append(0xE5); self.db(self._number(m.group(1))); return
+        m = re.fullmatch(r'MOV ([0-9A-F]{2}h|[A-Z][A-Z0-9]*),A', t)
+        if m and m.group(1) != 'C' and not re.fullmatch(r'R[0-7]', m.group(1)):
+            self.out.append(0xF5); self.db(self._direct(m.group(1))); return
+        m = re.fullmatch(r'MOV A,([0-9A-F]{2}h|[A-Z][A-Z0-9]*)', t)
+        if m and not re.fullmatch(r'R[0-7]', m.group(1)):
+            self.out.append(0xE5); self.db(self._direct(m.group(1))); return
         m = re.fullmatch(r'MOV A,R([0-7])', t)
         if m:
             self.out.append(0xE8 | int(m.group(1))); return

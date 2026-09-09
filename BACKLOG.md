@@ -514,3 +514,183 @@ mean of the deviation is zero.
   ROMs a data flow analysis would be more robust.
 - V1.5 has barely run in the emulator so far; all measurements come from
   V1.3.
+
+## Sound: three routes not yet taken
+
+Section 36 establishes that the instrument is a 1024-point wavetable DDS
+whose table the CPU writes, and builds a polyphonic player on that. Three
+neighbouring ideas are testable on their own and are not done.
+
+**Done since:** the polyphonic player exists and runs on the instrument
+(section 36). What follows was written before that and the first item is
+now only worth doing as a cross-check.
+
+**Chord wavetables through the ARB EEPROM — the quickest test of all.**
+The download format carries ten bits per point, exactly what the ARB
+EEPROM stores, so a chord table needs no firmware change at all: generate
+it with `mkchord.py`, write it into the six ARB slots with `mkarb.py`,
+select the slot from the front panel and set the frequency by hand. Six
+chords, no risk, no EPROM to burn. This is the fastest way to hear
+whether a just-intonation triad through the analog chain sounds the way
+the arithmetic says it should, and it should be done before anything
+else. Watch the per-curve identity byte, or the instrument answers Err 8
+(section 32).
+
+**PCM playback through the DC generator.** STR7 carries two bytes to
+D301 (74HCT4094) and on to N302, a **DAC-08EN**, buffered by N301 (TL072)
+and summed into the main output over a ±20 V window — an eight-bit
+converter that the CPU writes directly. A two-byte telegram is about
+47 µs of routine plus 16 µs of bus, so on the order of 20 kSa/s. That is
+the only route to sounds that are not periodic — speech, drums, anything
+a wavetable cannot hold. Two things are unmeasured and decide it: whether
+the DC path is filtered (the schematic shows DAC-08 straight into the
+TL072, but no component values were read off), and what a hand-written
+output loop really costs. Note this is the "class-D" idea without the
+PWM: the resolution is already there in the converter, so modulating a
+pulse width would only throw it away.
+
+**Delta-sigma on the pen lift line.** P1.0 drives V356 (BC337-25) to a
+0/+5 V rear-panel BNC — the only genuinely CPU-wiggled single bit that
+leaves the instrument. `SETB P1.0` / `CLR P1.0` is one machine cycle, so
+a noise-shaped one-bit stream at a few hundred kHz is possible, and a
+resistor and capacitor into a small speaker would make it audible. It
+would be a second, independent channel that does not disturb the main
+output at all.
+
+**Still open from section 36.**
+
+* The STR1 control word is understood as far as `RAM_PAGE` at 1D62h
+  builds it (frequency-derived, plus bit 6 from 2Bh.4 and bit 0 from
+  22h.4), but the values 2Eh and 20h seen during a cold start come from
+  the continuation of the finish routine at 4360h and were not traced.
+* There is no second RAM buffer, so a chord change costs a full 32–40 ms
+  reload with the output silent. The player avoids it by keeping the
+  harmony in the table and moving only the frequency. If a piece needs
+  changing chords, put the reload on a rest.
+* Section 12 says PGS is active for exactly the five waveforms that come
+  out of the waveform RAM, and section 36.5 built on that. The instrument
+  then showed a SINE command loading a 2050-byte table as well, with the
+  same STR3 word as HAV. **What PGS actually distinguishes is open
+  again.**
+* Bit 5 of the STR7 relay byte clicks but costs no level. Most likely
+  K403, the 50/600 Ω relay, which a high-impedance probe cannot see —
+  unverified.
+* The waveform-dependent setup index (table at 4335h, values
+  `1E 24 24 25 2C 34 13 1A`) is mapped for SINE, TRNGL/TRNGLPULSE, HAV
+  and the ROM ARB curves. Indices 4, 5, 6 and 7 belong to call sites that
+  were not identified.
+
+## The holy grail — the instrument as a synthesizer
+
+Not a DX7. The comparison that holds is a **PPG Wave or a Prophet VS**:
+a monophonic wavetable synth with two-operator FM. Every building block
+is already in the instrument and already documented.
+
+| Function | What provides it | Evidence |
+|---|---|---|
+| Oscillator | TWS + the 1024-point wavetable, 10 bit, any single-cycle waveform | section 36 |
+| Second operator | modulation oscillator (TWS D130 + SinePROM D131 + DAC-08 N133) onto the VCO over M1, 10 Hz…100 kHz, deviation over the AD7523 | section 30, fig. 119 |
+| Envelope | AM6012, 12-bit multiplying DAC, two STR9 telegrams | section 30, fig. 109 |
+| Note change | a precomputed 4-byte TWS word on STR6 | section 18 |
+
+Two operators with an **arbitrary carrier waveform** is something the DX7
+precisely cannot do — its operators are sines.
+
+**Measured cost** (machine cycles, section 36.5, on V2.0 after a cold
+start; call the routine, count to the RET):
+
+| Routine | Instructions | Machine cycles | Real time |
+|---|---|---|---|
+| `OUT_FREQ` 0A28h, a whole note change | 385 | 588 | **0.588 ms** |
+| of which `FREQ_BCD2BIN` 0A8Fh | 228 | 324 | 0.324 ms |
+| `SEND_STR6` 0EDBh, the 4-byte TWS word | 79 | 139 | **0.139 ms** |
+| `SEND_STR7` 0EE2h, 2 bytes | 45 | 79 | 0.079 ms |
+| `SEND_STR9` 0EE9h, 1 byte | 28 | 49 | **0.049 ms** |
+
+So a note change that skips the BCD conversion — 128 ready-made TWS words
+in a 512-byte ROM table, indexed by MIDI note number — costs **139 µs**,
+not the 100 µs first estimated, and going through `OUT_FREQ` costs 588 µs
+because more than half of it is BCD arithmetic. An envelope step is two
+STR9 telegrams, **98 µs**, so a 1 kHz envelope rate is about **10 % of the
+CPU** (the first estimate of 66 µs and 7 % was too optimistic). The CPU is
+not the bottleneck either way.
+
+### The two walls
+
+**There is exactly one main TWS.** One oscillator, one wavetable. No
+firmware can duplicate a phase accumulator, so there is no real polyphony
+with independent pitches and independent envelopes. That is a hardware
+fact, not a budget problem.
+
+**The chord trick does not scale to arbitrary music.** Every partial has
+to be an integer multiple of f0, and a partial needs roughly eight points
+per period, so h ≤ 128. The pitch grid is therefore f0 and the highest
+available note is 128·f0. To tune to ±5 cents at 82 Hz you need
+f0 ≲ 0.5 Hz — which puts the highest note at 64 Hz, below the note you
+were tuning. The two requirements contradict each other. For **parallel
+harmony at fixed intervals** it works beautifully (that is what `mkpoly.py`
+does), for arbitrary chords in equal temperament it cannot.
+
+The route to arbitrary chords is therefore not the table but the
+**arpeggio**: retuning costs 139 µs against 32–40 ms for a reload, so
+switching between three notes at 1 kHz costs about 14 % of the CPU and
+fuses into a chord — the classic SID trick, and here with no constraint
+on tuning at all.
+
+### The lucky accident, and the catch
+
+**12 MHz gives exactly the MIDI baud rate.** 12 000 000 / 384 = 31 250,
+exactly, with timer 1 in mode 2, `TH1 = FFh` and `SMOD = 0`. Crystal G816
+could not be better chosen for MIDI.
+
+The catch: the UART sits in **mode 0** and drives the C-bus with it
+(section 8). One UART, two jobs, and not at the same time. So MIDI in has
+to arrive either through the interface card on I²C 5Eh (section 28) or be
+bit-banged on an interrupt pin — 32 µs per bit is 32 machine cycles,
+doable but it eats the timing everywhere else. **That is the open
+question, not the synthesis.**
+
+A second output channel is available for free: the **MOD output** on the
+back carries the modulation oscillator's signal outside. Two BNCs, mixed
+externally. And since the SinePROM D131 is a socketed 27C64 that we have
+read out (section 31), its waveform can be replaced too.
+
+### Groundwork before anyone starts
+
+* a table of 128 ready-made TWS frequency words, one per MIDI note
+  (512 bytes) — derivable from the formula in section 18 and checkable
+  against `notefreq.js`;
+* measure the achievable envelope rate against `mcyc` rather than
+  estimating it;
+* check on the real instrument at what rate an arpeggio actually fuses
+  into a chord — that is an ear question, not an arithmetic one;
+* decide the MIDI input path before anything else is built.
+
+**Amplitude control is solved** (section 36.9): the second byte of the
+STR9 telegram pair is a monotonic amplitude DAC — one pair, no relays, no
+range switching, which is exactly what an envelope needs. The first STR9
+byte has no level effect, and the attenuator relays are bits 3, 4 and 5
+of the first STR7 byte, so STR7 is best left alone. A single STR9
+telegram is enough — measured at 49 us, so a 1 kHz envelope costs about
+5 % of the CPU. What is still open is which of the eight relay
+combinations is the 0 dB setting; `mkpoly.py --relays` builds an image
+that walks all eight.
+
+The paragraph below is the state before that measurement, kept because it
+records how the wrong reading came about:
+
+**(superseded) Amplitude control is NOT solved** (section 36.9) and it blocks the
+envelope. The routine at 0B15h can be made to emit — write 56h/57h, poison
+10h to defeat the "nothing changed" gate, call it — but on the instrument
+every path that writes STR7 collapses the output, from 8.3 Vpp down to
+100 mV or less, including the `04h` the table gives for the 20 V range.
+The byte is masked with 27h at 0B01h before sending, and 04h/14h/1Ch all
+mask to the same value, so that telegram cannot be the attenuator. Find
+where the attenuator actually is before building an envelope on it. Fig.
+109 (amplitude controller) and fig. 111 were read for section 30; the
+amplifier sheet, fig. 110, never was, and the summing node for the DC
+path is unknown — that is where to look.
+
+Realistically not a weekend. But there is nothing unknown left in it —
+display, keyboard, C-bus, TWS word and the envelope path are all
+documented. The jump is diligence, not research.

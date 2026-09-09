@@ -398,6 +398,10 @@ Amiga trackers used — put the chord into the waveform so one voice plays
 three notes instead of spending three channels on it. A C64 has to
 arpeggio instead, because the SID has no writable wavetable.
 
+You do not even need an EPROM for the chords. The same tables fit the
+arbitrary EEPROM, so `python3 mkarb.py --chords` gives you six chords
+selectable from the front panel with the firmware untouched.
+
 There are two players and an image carries one or the other, since both
 hook the same menu entry:
 

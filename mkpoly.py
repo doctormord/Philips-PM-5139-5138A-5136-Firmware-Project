@@ -822,7 +822,8 @@ def main(argv):
     decay = 40.0                 # envelope time constant, in units of 1009 us
     attack = 8                   # rise steps, so a note does not start with a jump
     sustain = 0x48               # the decay settles here instead of dying away
-    drive = 1.0                  # >1 soft-clips the chord, louder and dirtier
+    drive = 2.5                  # soft clipping: louder, and a driven-guitar
+                                 # edge that suits the material. 1.0 is clean.
     relay = 0x1C                 # STR7 relay byte: bits 3+4 set = both
                                  # attenuators bypassed, measured 11.6 Vpp
     step_s = 30.0                # seconds per matrix step

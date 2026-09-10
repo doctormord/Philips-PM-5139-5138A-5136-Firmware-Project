@@ -4923,9 +4923,23 @@ at different angles, no distortion.
 
 The envelope was the bigger loss. Decaying towards nothing meant the
 average level over a note was a third of the peak; it now decays towards
-a **sustain** and keeps the body while still plucking. `--drive` adds soft
-clipping on top, worth another 2.3 dB and a dirtier sound, which for a
-chord that is meant to be a driven guitar is not a drawback.
+a **sustain** and keeps the body while still plucking.
+
+Soft clipping is on by default at `--drive 2.5`, worth another 2.3 dB and
+a dirtier edge, which for a chord meant to be a driven guitar is not a
+drawback. It has to re-centre afterwards: clipping an asymmetric waveform
+is itself asymmetric and left a DC component of 14 counts behind, which
+would have put an offset on the output having nothing to do with the
+music. The table is centred again after the clip, mean exactly 512.
+
+Where that leaves the chord against a square wave of the same
+peak-to-peak:
+
+| | at the start | now |
+|---|---|---|
+| Crest factor | 2.25 | **1.26** |
+| Table alone | −7.0 dB | **−2.0 dB** |
+| With the envelope | −17.2 dB | **−5.3 dB** |
 
 The chord tables gained two fuller voicings at no cost in space or load
 time, since the number of harmonics does not change the table size:

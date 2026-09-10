@@ -33,6 +33,12 @@ alone, because for a chord it makes no audible difference.
 
     python3 mkchord.py                 # list the chords and their tables
     python3 mkchord.py power out.bin   # write one table as a raw stream
+
+`drive` soft-clips the sum. It is distortion, and deliberately so: a
+chord has a crest factor around 1.6 even with the phases optimised, so it
+is several dB below a square wave of the same peak-to-peak. Flattening
+the peaks buys that back and gives the driven-guitar edge the material
+wants. `mkpoly.py` uses 2.5 by default.
 """
 import sys
 import waveforms
@@ -121,6 +127,12 @@ def chord(harmonics, rolloff=1.0, phase_spread=True, drive=1.0):
         # by flattening the peaks, which is exactly what the level needs.
         m = max(abs(v) for v in out) or 1.0
         out = [math.tanh(drive * v / m) * m for v in out]
+        # Clipping is not symmetric on an asymmetric waveform, so it
+        # leaves a DC component behind — measured at 14 counts of 1023
+        # before this was added. Re-centre, or the table carries an offset
+        # into the output that has nothing to do with the music.
+        mean = sum(out) / len(out)
+        out = [v - mean for v in out]
     return out
 
 

@@ -766,6 +766,57 @@ constant, which turns the AM6012 into a plain DAC, and write samples to
 STR9. True independent polyphony at any pitch with no latency at all, at
 the price of the whole CPU, seven bits and a hard bandwidth ceiling.
 
+### Time-multiplexing the wavetable — the idea that does not work
+
+It suggests itself, so here is the arithmetic before someone spends a
+weekend on it. Split the 1024-point RAM into four regions of 256, one per
+voice, and steer the TWS rapidly between them: play region 0 for one
+voice, jump to region 1 for the next, and so on. One DAC shared out in
+time.
+
+**The principle is sound.** Interleaving several voices on one converter
+does give their sum after low-pass filtering — the speaker and the ear do
+the averaging, and the average of the interleaved values is the sum
+divided by the voice count. That is how time-multiplexed DACs work.
+
+**And the jump itself is free.** At maximum N the accumulator crosses all
+1024 addresses in one output period of 50 ns, so 256 addresses take about
+12 ns. Running fast is not the problem.
+
+**Commanding it is.** Every change to the TWS is an STR6 telegram: four
+bytes at 8 µs each, 32 µs on the bus plus strobe and loop, call it 40 µs.
+With a separate jump telegram it is 80 µs per voice change.
+
+| | Round-robin rate | Nyquist per voice |
+|---|---|---|
+| 4 voices, jump + retune | 3.1 kHz | **1.6 kHz** |
+| 4 voices, retune only | 6.2 kHz | 3.1 kHz |
+| 2 voices, retune only | 12.5 kHz | 6.2 kHz |
+
+At a 3 kHz round-robin the switching itself sits in the middle of the
+audio band as a whistle, and each voice is limited to 1.6 kHz. Unusable.
+The bus runs at f_osc/12 and a byte is 8 µs; there is nothing to tune.
+
+**The comparison that settles it:**
+
+| | 4 voices | 3 voices | 2 voices |
+|---|---|---|---|
+| TWS multiplex | 1.6 kHz | 2.1 kHz | 6.2 kHz |
+| **Sum in software, written to STR9** | **7.1 kHz** | **8.9 kHz** | **11.9 kHz** |
+
+**Adding is cheaper than switching.** An addition on the 8051 costs one
+cycle; a voice change over the bus costs forty microseconds. The instinct
+— share one converter between voices — is right, and the cheap way to
+share it is the sum, not the interleave. At which point the TWS is not
+needed at all: set the wavetable to a constant, the AM6012 becomes a
+plain DAC, and the CPU writes the finished mix.
+
+Two side notes. The modulation oscillator can frequency-modulate the
+20.97 MHz clock but cannot set the address, so it produces sidebands, not
+switching. And whether the TWS has a command that loads the accumulator
+directly is unknown — commands 04h, 20h, 60h and C0h are undecoded. If
+one of them does, a voice change halves to 40 µs. Still not enough.
+
 ### If the firmware is replaced completely
 
 Everything above assumes an extension living in the free ROM behind the

@@ -700,11 +700,10 @@ exactly, with timer 1 in mode 2, `TH1 = FFh` and `SMOD = 0`. Crystal G816
 could not be better chosen for MIDI.
 
 The catch: the UART sits in **mode 0** and drives the C-bus with it
-(section 8). One UART, two jobs, and not at the same time. So MIDI in has
-to arrive either through the interface card on I²C 5Eh (section 28) or be
-bit-banged on an interrupt pin — 32 µs per bit is 32 machine cycles,
-doable but it eats the timing everywhere else. **That is the open
-question, not the synthesis.**
+(section 8). One UART, two jobs, and not at the same time — as long as
+the original firmware is underneath. Replacing it opens the choice up;
+see "If the firmware is replaced completely" below, where the trade is
+worked out with numbers.
 
 A second output channel is available for free: the **MOD output** on the
 back carries the modulation oscillator's signal outside. Two BNCs, mixed
@@ -720,6 +719,99 @@ RAM page to swap. So no amount of firmware work changes the waveform at
 note rate, and the design has to put the table on the program-change
 level, exactly as a PPG Wave does. Note on is a retune (139 µs), velocity
 and envelope are one STR9 byte (49 µs).
+
+### How polyphony would actually work, and what it costs
+
+The question that decides the design: press two keys — what happens?
+
+**The CPU cannot feed the TWS.** It reads the waveform RAM by itself at
+20.97 MHz; the CPU runs at one million instructions a second and is not
+in the same league. The division of labour is fixed: the TWS is the
+oscillator, the CPU is the author of the table. The only variable is how
+often a table can be exchanged, and that is 16.4 ms at the floor
+(2048 bytes over the C-bus) and 32–40 ms as the firmware does it today.
+
+**Two arbitrary notes do fit in one table**, and the arithmetic is
+friendlier than it looks. Both have to be integer multiples of the table
+frequency; equal-tempered intervals are irrational, so they need a
+rational approximation, and small integers get close:
+
+| Interval | Approximation | Points per period | Error |
+|---|---|---|---|
+| octave | 2:1 | 512 | 0 ¢ |
+| fifth | 3:2 | 341 | +2.0 ¢ |
+| fourth | 4:3 | 256 | −2.0 ¢ |
+| major third | 29:23 | 35 | +1.3 ¢ |
+| minor second | 18:17 | 57 | −1.0 ¢ |
+
+Even the major third at harmonic 29 keeps 35 points per period. Nothing
+here is tight.
+
+So there are three architectures, and they differ by an order of
+magnitude in latency:
+
+**1. Compute the table on the fly.** 1024 points, two sine lookups and an
+add each, roughly 35 cycles on this CPU — about 36 ms — then 16–40 ms to
+load. **70–80 ms** between the second key going down and the sound. Fine
+for held chords, useless for anything percussive.
+
+**2. Precomputed interval tables.** No computation, only the load. This
+is the one that fits the instrument: **the interval is the patch, the
+root is the note.** Two keys a fifth apart select the 3:2 table and set
+f0 from the lower one. Move both hands up a tone and nothing reloads —
+that is a retune, 139 µs. Only a change of *interval* costs the 16–40 ms.
+
+**3. Ignore the TWS and compute samples.** Set the wavetable to a
+constant, which turns the AM6012 into a plain DAC, and write samples to
+STR9. True independent polyphony at any pitch with no latency at all, at
+the price of the whole CPU, seven bits and a hard bandwidth ceiling.
+
+### If the firmware is replaced completely
+
+Everything above assumes an extension living in the free ROM behind the
+checksum, with the original firmware still running underneath. Replacing
+it outright changes four things.
+
+**Memory.** 19 509 bytes free today, so nine wavetables. A full 27512 with
+maybe 8 KB of code leaves room for **28 tables** — all twelve intervals,
+several voicings each, with nothing computed at run time.
+
+**Reload time.** The 32–40 ms of today is the firmware's per-point
+handshake and pointer arithmetic. Own code reaches **18–20 ms**, close to
+the 16.4 ms the bus imposes. That floor cannot be moved: 2048 bytes at
+f_osc/12 is arithmetic, not effort.
+
+**Sample rates.** Without the original firmware's interrupts stealing
+cycles, a tight STR9 loop gets meaningfully further:
+
+| Voices | Cycles per sample | Rate | Nyquist |
+|---|---|---|---|
+| 1 | ~30 | 33.3 kSa/s | 16.7 kHz |
+| 2 | ~42 | 23.8 kSa/s | 11.9 kHz |
+| 3 | ~56 | 17.9 kSa/s | 8.9 kHz |
+| 4 | ~70 | 14.3 kSa/s | 7.1 kHz |
+
+Three voices at 8.9 kHz of bandwidth is a genuine polyphonic synthesiser,
+seven bits and all.
+
+**And MIDI input stops being the blocker.** Today the UART drives the
+C-bus and cannot do both. With the whole firmware ours there is a choice:
+
+* **UART for MIDI, C-bus bit-banged.** 12 MHz ÷ 384 = 31250 baud exactly,
+  timer 1 in mode 2 with `TH1 = FFh`. The cost is that a table reload goes
+  from 16.4 ms to about **66 ms**, four times slower, because eight bits
+  of bit-banging cost roughly four cycles each instead of one.
+* **MIDI bit-banged on INT0, UART stays on the bus.** 32 µs per bit,
+  320 µs per byte. At twenty notes a second that is under 2 % of the CPU —
+  but it is indivisible: nothing else can happen during a byte, which
+  collides badly with a sample loop.
+* **An interface card on I²C 5Eh** doing MIDI in an external controller.
+  Costs hardware, costs neither CPU nor bus.
+
+The first two are a straight trade between reload latency and sample-loop
+integrity, and which one is right depends on whether the instrument is
+meant to be architecture 2 or architecture 3 above. That decision comes
+first; everything else follows from it.
 
 ### Groundwork before anyone starts
 

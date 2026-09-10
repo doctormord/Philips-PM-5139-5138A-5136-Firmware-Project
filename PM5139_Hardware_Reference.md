@@ -4871,6 +4871,39 @@ chords, and the curves are then selected from the front panel like any
 other arbitrary waveform. `arb.js` verifies the directory against the
 firmware's own check at 9615h.
 
+### 36.4.2 The envelope
+
+Until the amplitude path was understood (36.8) every note was a flat tone
+and the result sounded like an organ. The note loop simply burned its
+duration in a `DJNZ` delay. That delay is where the envelope belongs: one
+STR9 byte per step, at one step per delay unit, so about 1 kHz.
+
+```
+env[i] = 7Fh · e^(−i/40),  floor 06h,  128 entries
+```
+
+128 steps cover 129 ms and the last value is held for anything longer.
+Measured in the emulator over the first notes, the DAC runs
+127 → 109 → 94 → 81 → 70 → 60 → 52 … and jumps back to 127 on the next
+note, which is the plucked shape.
+
+Cost: one telegram of 49 µs against a 1009 µs unit, so under 5 % of the
+CPU, and it needs no reload and no relay. A single byte is enough — the
+first byte of an STR9 pair has no effect on the level, so the previous
+value simply shifts on into the register that does not matter.
+
+`--decay` sets the time constant, `--no-envelope` returns to the flat
+tone.
+
+The chord tables gained two fuller voicings at no cost in space or load
+time, since the number of harmonics does not change the table size:
+
+| Name | Harmonics | Direction changes | Crest factor |
+|---|---|---|---|
+| `power` | 2:3:4 | 6 | 2.07 |
+| `crunch` | 2:3:4:6:8 | 10 | 2.25 |
+| `crunch5` | 2:3:4:6:8:12:16 | 16 | 2.33 |
+
 Useful switches: `--chord` picks the harmony, `--waveform` the RAM
 waveform to route through, `--relay` and `--dac` the output level
 (section 36.8), `--leadin` prepends three seconds of a plain ramp as a

@@ -529,7 +529,7 @@ def loader(a, setup, finish, table_label, tag=''):
     #                                     its RET returns to our LCALL
 
 
-def player(a, freq, notes_label):
+def player(a, freq, notes_label, envel=False):
     """The melody loop, as in mkdoom.py: three bytes of frequency, one of
     duration, terminated by a zero byte, then round again."""
     a.label('loop')
@@ -541,7 +541,11 @@ def player(a, freq, notes_label):
     a.op('PUSH DPH'); a.op('PUSH DPL')
     a.op('LCALL %04Xh' % freq)
     a.op('POP DPL'); a.op('POP DPH')
+    if envel:
+        a.op('MOV R3,#00h')             # restart the envelope on every note
     a.label('hold')                     # one unit = 1009 us, measured
+    if envel:
+        envelope_step(a, 'n')           # about 45 us of the 1009
     a.op('MOV R6,#02h')
     a.label('h2'); a.op('MOV R7,#0FAh')
     a.label('h3'); a.op('DJNZ R7,h3')
@@ -551,6 +555,57 @@ def player(a, freq, notes_label):
     a.label('done')
     a.op('MOV DPTR,#%s' % notes_label)  # start the melody again
     a.op('SJMP loop')
+
+
+def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128):
+    """A plucked shape for the amplitude DAC.
+
+    One byte per step, and a step is one unit of the wait loop, so about
+    1009 us — roughly a 1 kHz envelope rate. 128 entries cover 129 ms and
+    the last value is held for anything longer.
+
+    Without this every note is a flat tone and the whole thing sounds like
+    an organ. The DAC is seven bits (section 36.8), so the values stay
+    inside 00h..7Fh.
+    """
+    import math
+    out = bytearray()
+    for i in range(n):
+        v = peak * math.exp(-i / tau)
+        out.append(max(floor, min(peak, int(round(v)))))
+    return bytes(out)
+
+
+def envelope_step(a, tag):
+    """Send one envelope value to STR9 and advance the index in R3.
+
+    R3 is the step counter, clamped at 7Fh so a long note holds the tail.
+    DPTR belongs to the note table, so it is saved across the lookup, and
+    the value is stashed in R1 because R6 and R7 are the delay counters.
+    """
+    a.op('PUSH DPL'); a.op('PUSH DPH')
+    a.op('MOV DPTR,#envtab')
+    a.op('MOV A,R3')
+    a.op('CLR C')                       # MOVC needs a clean carry-free A
+    a.op('MOVC A,@A+DPTR')
+    # One byte is enough: measured, a single STR9 telegram changes the
+    # level, and the first byte of a pair has no effect on it anyway
+    # (section 36.8). So the previous value simply shifts on into the
+    # register that does not matter.
+    a.op('MOV SBUF,A')
+    a.op('CLR TI')
+    a.label('ew1%s' % tag); a.op('JNB TI,ew1%s' % tag)
+    a.op('MOV DPH,#89h')                # fire STR9
+    a.op('MOV DPL,#00h')
+    a.op('MOVX @DPTR,A')
+    a.op('MOV DPH,#80h')
+    a.op('MOVX @DPTR,A')
+    a.op('POP DPH'); a.op('POP DPL')
+    a.op('INC R3')                      # advance, clamp at 7Fh
+    a.op('MOV A,R3')
+    a.op('JNB ACC.7,eok%s' % tag)
+    a.op('DEC R3')
+    a.label('eok%s' % tag)
 
 
 def hold(a, tag, seconds):
@@ -715,6 +770,8 @@ def main(argv):
     level = None
     volts = 20.0                 # amplitude the player sets for itself
     dac = 0x7F                   # STR9 amplitude DAC; it wraps above 7Fh
+    envel = True                 # pluck the notes with the STR9 DAC
+    decay = 40.0                 # envelope time constant, in units of 1009 us
     relay = 0x1C                 # STR7 relay byte: bits 3+4 set = both
                                  # attenuators bypassed, measured 11.6 Vpp
     step_s = 30.0                # seconds per matrix step
@@ -732,6 +789,8 @@ def main(argv):
         elif argv[i] == '--volts': volts = float(argv[i+1]); i += 2
         elif argv[i] == '--dac': dac = int(argv[i+1], 0); i += 2
         elif argv[i] == '--relay': relay = int(argv[i+1], 0); i += 2
+        elif argv[i] == '--no-envelope': envel = False; i += 1
+        elif argv[i] == '--decay': decay = float(argv[i+1]); i += 2
         elif argv[i] == '--ampsweep': mode = 'amp'; i += 1
         elif argv[i] == '--matrix': mode = 'matrix'; i += 1
         elif argv[i] == '--relays': mode = 'relays'; i += 1
@@ -848,7 +907,7 @@ def main(argv):
         a.op('LCALL rep')
         set_level(a, dac)
         a.op('MOV DPTR,#notes')
-        player(a, freq, 'notes')
+        player(a, freq, 'notes', envel)
     # the loader, entered with the setup index in A
     if pattern == 'suite':
         for n, _, _ in SUITE:
@@ -917,6 +976,8 @@ def main(argv):
     a.label('table'); a.db(*wave)
     if mode == 'hold' and pattern == 'both':
         a.label('table2'); a.db(*mkchord.table(chord_name))
+    if mode == 'play' and envel:
+        a.label('envtab'); a.db(*envelope_table(peak=dac, tau=decay))
     a.label('notes'); a.db(*tune)
     code = a.finish()
 
@@ -928,6 +989,10 @@ def main(argv):
           % (base, len(code), len(code) - len(wave) - len(tune), len(wave), len(tune)))
     print('chord "%s" = harmonics %s, the melody is divided by %d'
           % (chord_name, ':'.join(str(x) for x in h), min(h)))
+    if mode == 'play' and envel:
+        e = envelope_table(peak=dac, tau=decay)
+        print('envelope: %d steps of ~1.009 ms, %02Xh down to %02Xh, tau %.0f ms'
+              % (len(e), e[0], e[-1], decay * 1.009))
     if mode == 'play':
         if dac > 0x7F:
             print('WARNING: the DAC wraps above 7Fh — %02Xh acts as %02Xh'

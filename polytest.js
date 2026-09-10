@@ -33,6 +33,8 @@ for (let i = 0; i < 11000000; i++) c.step();
 console.log('cold start done');
 
 c.push(0xFF); c.push(0xFF); c.pc = entry;
+c.wcount = 0;                      // only count what the player itself loads
+let settle = 0;
 
 // Record every telegram: the bytes written to SBUF, closed by a strobe.
 const tele = [];
@@ -54,10 +56,10 @@ for (let i = 0; i < 40000000 && c.pc !== 0xFFFF; i++) {
     }
   }
   c.step();
-  // Two big streams now go by: the firmware's own table, loaded by the
-  // state dispatcher when the waveform is selected, and ours right after
-  // it. Ours is the one that counts, so wait for the second.
-  if (tele.filter(t => t.bytes.length > 1000).length >= 2) break;
+  // Stop once a full table has gone into the waveform RAM, but run on a
+  // little so the strobe that terminates the stream is still recorded.
+  // That is exact and does not depend on how many streams a build emits.
+  if (c.wcount >= 1024 && ++settle > 30000) break;
 }
 
 const hx = a => a.map(x => x.toString(16).padStart(2, '0').toUpperCase()).join(' ');

@@ -61,7 +61,43 @@ CHORDS = {
 }
 
 
-def chord(harmonics, rolloff=1.0, phase_spread=True):
+_PHASE_CACHE = {}
+
+
+def best_phases(harmonics, trials=4000, seed=1):
+    """Starting phases that minimise the crest factor.
+
+    A chord is quieter than a square wave of the same peak-to-peak simply
+    because its partials rarely peak together — that is the crest factor,
+    and for 2:3:4:6:8 with the obvious phase spread it is 2.25, which is
+    7 dB below a square. Choosing the phases well pushes it to about 1.6
+    and buys back 3 dB, with no distortion and no cost at all: it is the
+    same 1024 points, just started at different angles.
+
+    A seeded random search, so a build is reproducible; the result is
+    cached because it is the same for every call with the same harmonics.
+    """
+    import math, random
+    key = tuple(harmonics)
+    if key in _PHASE_CACHE:
+        return _PHASE_CACHE[key]
+    rnd = random.Random(seed)
+    best, bestp = None, None
+    for _ in range(trials):
+        p = [rnd.uniform(0, 2 * math.pi) for _ in harmonics]
+        y = []
+        for i in range(N):
+            x = 2 * math.pi * i / N
+            y.append(sum(math.sin(h * x + q) / h for h, q in zip(harmonics, p)))
+        rms = (sum(v * v for v in y) / N) ** 0.5
+        cf = max(abs(v) for v in y) / rms
+        if best is None or cf < best:
+            best, bestp = cf, p
+    _PHASE_CACHE[key] = bestp
+    return bestp
+
+
+def chord(harmonics, rolloff=1.0, phase_spread=True, drive=1.0):
     """One period of the sum of the given harmonics.
 
     `rolloff` damps the higher partials with 1/h**rolloff, which keeps the
@@ -71,14 +107,20 @@ def chord(harmonics, rolloff=1.0, phase_spread=True):
     quantisation.
     """
     import math
+    ph = best_phases(harmonics) if phase_spread else [0.0] * len(harmonics)
     out = []
     for i in range(N):
         x = 2 * math.pi * i / N
         s = 0.0
-        for k, h in enumerate(harmonics):
-            ph = (math.pi * k * k / len(harmonics)) if phase_spread else 0.0
-            s += math.sin(h * x + ph) / (h ** rolloff)
+        for h, q in zip(harmonics, ph):
+            s += math.sin(h * x + q) / (h ** rolloff)
         out.append(s)
+    if drive != 1.0:
+        # Soft clipping. It is distortion, and for a chord meant to sound
+        # like a driven guitar that is the point — it also lifts the RMS
+        # by flattening the peaks, which is exactly what the level needs.
+        m = max(abs(v) for v in out) or 1.0
+        out = [math.tanh(drive * v / m) * m for v in out]
     return out
 
 
@@ -102,12 +144,12 @@ def unpack(stream):
     return [((stream[i] << 2) | (stream[i + 1] >> 6)) for i in range(0, 2 * N, 2)]
 
 
-def table(name, rolloff=1.0):
+def table(name, rolloff=1.0, drive=1.0):
     """A named chord, quantised and packed, ready for the bus."""
     if name not in CHORDS:
         raise SystemExit('unknown chord %r, known: %s'
                          % (name, ' '.join(sorted(CHORDS))))
-    v = waveforms._quantise(chord(CHORDS[name], rolloff), 1, 1023)
+    v = waveforms._quantise(chord(CHORDS[name], rolloff, drive=drive), 1, 1023)
     return pack(v)
 
 

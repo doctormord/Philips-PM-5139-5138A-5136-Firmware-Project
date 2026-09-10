@@ -4893,8 +4893,39 @@ CPU, and it needs no reload and no relay. A single byte is enough — the
 first byte of an STR9 pair has no effect on the level, so the previous
 value simply shifts on into the register that does not matter.
 
-`--decay` sets the time constant, `--no-envelope` returns to the flat
-tone.
+`--attack`, `--decay`, `--sustain` and `--no-envelope` shape it.
+
+**Two things had to be fixed after listening on the instrument.**
+
+It clicked. The first version jumped to 7Fh on step 0 while the previous
+note had decayed to 06h — a discontinuity of 121 of 127 counts at every
+note. The attack now ramps over eight steps, and it ramps **from the
+level the previous note left behind**, carried in R2. Which then exposed
+the second fault: `OUT_FREQ` uses R2 itself, so the level did not survive
+the call and every note restarted from whatever the firmware had left,
+measured as a drop of 78 counts. R2 is now pushed across the call. The
+largest discontinuity anywhere is 15 counts.
+
+And it was quiet. Against a square wave at the same peak-to-peak the
+chord loses on two counts, and the smaller of the two is the one you
+would guess:
+
+| | before | after |
+|---|---|---|
+| Crest factor, `crunch` | 2.25, −7.0 dB | **1.59, −4.0 dB** |
+| Envelope average over a note | −10.2 dB | **−3.3 dB** |
+| Total against a square wave | −17.2 dB | **−7.3 dB** |
+
+The crest factor came down by choosing the starting phases of the
+partials properly — `best_phases()` searches for the minimum, seeded so a
+build stays reproducible. It is free: the same 1024 points, just started
+at different angles, no distortion.
+
+The envelope was the bigger loss. Decaying towards nothing meant the
+average level over a note was a third of the peak; it now decays towards
+a **sustain** and keeps the body while still plucking. `--drive` adds soft
+clipping on top, worth another 2.3 dB and a dirtier sound, which for a
+chord that is meant to be a driven guitar is not a drawback.
 
 The chord tables gained two fuller voicings at no cost in space or load
 time, since the number of harmonics does not change the table size:

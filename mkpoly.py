@@ -175,7 +175,7 @@ def test_suite(chord_name):
                                  for i in range(N)]),
          'a ramp over the first 512 points, flat over the rest. Two ramps per '
          'period would mean only 512 points are read'),
-        ('chord',  mkchord.table(chord_name),
+        ('chord',  mkchord.table(chord_name, drive=drive),
          'the real thing — the chord'),
     ]
 
@@ -539,7 +539,16 @@ def player(a, freq, notes_label, envel=False, attack=5, dac=0x7F):
     a.op('CLR A'); a.op('MOVC A,@A+DPTR'); a.op('MOV 52h,A'); a.op('INC DPTR')
     a.op('CLR A'); a.op('MOVC A,@A+DPTR'); a.op('MOV R5,A');  a.op('INC DPTR')
     a.op('PUSH DPH'); a.op('PUSH DPL')
+    if envel:
+        # OUT_FREQ uses R2 itself, and R2 is what carries the note level
+        # across the boundary. Without this the attack restarted from
+        # whatever the firmware happened to leave behind — measured as a
+        # drop of 78 counts at every note, which is worse than the jump
+        # the envelope was meant to remove.
+        a.op('PUSH R2')
     a.op('LCALL %04Xh' % freq)
+    if envel:
+        a.op('POP R2')
     a.op('POP DPL'); a.op('POP DPH')
     if envel:
         a.op('MOV R3,#00h')             # restart the envelope on every note
@@ -558,7 +567,8 @@ def player(a, freq, notes_label, envel=False, attack=5, dac=0x7F):
     a.op('SJMP loop')
 
 
-def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128, attack=8):
+def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128, attack=8,
+                   sustain=0x48):
     """A plucked shape for the amplitude DAC.
 
     One byte per step, and a step is one unit of the wait loop, so about
@@ -584,7 +594,11 @@ def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128, attack=8):
             # left the DAC, so the first step is no step at all
             v = floor + (peak - floor) * i / max(1, attack - 1)
         else:
-            v = peak * math.exp(-(i - attack + 1) / tau)
+            # decay *towards sustain*, not towards nothing. Decaying to
+            # the floor cost 10.2 dB of average level over a note, more
+            # than the chord's own crest factor costs against a square
+            # wave. A sustain keeps the attack transient and the body.
+            v = sustain + (peak - sustain) * math.exp(-(i - attack + 1) / tau)
         out.append(max(floor, min(peak, int(round(v)))))
     return bytes(out)
 
@@ -807,6 +821,8 @@ def main(argv):
     envel = True                 # pluck the notes with the STR9 DAC
     decay = 40.0                 # envelope time constant, in units of 1009 us
     attack = 8                   # rise steps, so a note does not start with a jump
+    sustain = 0x48               # the decay settles here instead of dying away
+    drive = 1.0                  # >1 soft-clips the chord, louder and dirtier
     relay = 0x1C                 # STR7 relay byte: bits 3+4 set = both
                                  # attenuators bypassed, measured 11.6 Vpp
     step_s = 30.0                # seconds per matrix step
@@ -827,6 +843,8 @@ def main(argv):
         elif argv[i] == '--no-envelope': envel = False; i += 1
         elif argv[i] == '--decay': decay = float(argv[i+1]); i += 2
         elif argv[i] == '--attack': attack = int(argv[i+1]); i += 2
+        elif argv[i] == '--sustain': sustain = int(argv[i+1], 0); i += 2
+        elif argv[i] == '--drive': drive = float(argv[i+1]); i += 2
         elif argv[i] == '--ampsweep': mode = 'amp'; i += 1
         elif argv[i] == '--matrix': mode = 'matrix'; i += 1
         elif argv[i] == '--relays': mode = 'relays'; i += 1
@@ -1008,7 +1026,7 @@ def main(argv):
                 a.label('mx%d' % n); a.db(*telegram_table(tel))
     wave = (triangle_table() if mode in ('matrix', 'relays', 'ampmatrix')
             else ramp_table() if pattern in ('ramp', 'both')
-            else mkchord.table(chord_name))
+            else mkchord.table(chord_name, drive=drive))
     tune = notes(chord_name, midi_file, rule, channel, tempo)
     if pattern == 'suite':
         for n, data, _ in SUITE:
@@ -1017,9 +1035,9 @@ def main(argv):
         a.label('tb_lead'); a.db(*ramp_table())
     a.label('table'); a.db(*wave)
     if mode == 'hold' and pattern == 'both':
-        a.label('table2'); a.db(*mkchord.table(chord_name))
+        a.label('table2'); a.db(*mkchord.table(chord_name, drive=drive))
     if mode == 'play' and envel:
-        a.label('envtab'); a.db(*envelope_table(peak=dac, tau=decay, attack=attack))
+        a.label('envtab'); a.db(*envelope_table(peak=dac, tau=decay, attack=attack, sustain=sustain))
     a.label('notes'); a.db(*tune)
     code = a.finish()
 
@@ -1032,10 +1050,12 @@ def main(argv):
     print('chord "%s" = harmonics %s, the melody is divided by %d'
           % (chord_name, ':'.join(str(x) for x in h), min(h)))
     if mode == 'play' and envel:
-        e = envelope_table(peak=dac, tau=decay, attack=attack)
+        e = envelope_table(peak=dac, tau=decay, attack=attack, sustain=sustain)
         print('envelope: %d steps of ~1.009 ms, attack %d (%.0f ms) to %02Xh,'
               % (len(e), attack, attack * 1.009, max(e)))
-        print('          then decay to %02Xh, tau %.0f ms' % (e[-1], decay * 1.009))
+        print('          then decay to %02Xh, tau %.0f ms  (average %.0f of 127)'
+              % (e[-1], decay * 1.009,
+                 sum(e[min(i, len(e)-1)] for i in range(137)) / 137))
     if mode == 'play':
         if dac > 0x7F:
             print('WARNING: the DAC wraps above 7Fh — %02Xh acts as %02Xh'

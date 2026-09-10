@@ -125,6 +125,13 @@ class Asm:
         }
         if t in tab:
             self.db(*tab[t]); return
+        m = re.fullmatch(r'(PUSH|POP) (\S+h|R[0-7])', t)
+        if m:
+            reg = m.group(2)
+            addr = (int(reg[1]) if re.fullmatch(r'R[0-7]', reg)   # bank 0
+                    else self._direct(reg))
+            self.out.append(0xC0 if m.group(1) == 'PUSH' else 0xD0)
+            self.db(addr); return
         m = re.fullmatch(r'(CLR|SETB|CPL) (\S+\.\S+|[A-Z][A-Z0-9]*)', t)
         if m and m.group(2) not in ('A', 'C'):
             self.out.append({'CLR': 0xC2, 'SETB': 0xD2, 'CPL': 0xB2}[m.group(1)])

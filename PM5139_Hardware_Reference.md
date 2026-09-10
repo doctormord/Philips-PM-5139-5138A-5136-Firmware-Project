@@ -4839,8 +4839,9 @@ the other, never both.
 | Waveform | whatever is loaded | its own 1024-point chord table |
 | Per note | 50h..52h, then `OUT_FREQ` | the same, and the chord transposes with it |
 | Output level | as the front panel left it | set explicitly, measured 11.6 Vpp |
-| Footprint, built-in tune | 182 bytes | 2449 bytes |
-| Footprint, full MIDI track | about 3.7 KB of notes | **6017 bytes** of the 19509 free |
+| Footprint, built-in tune | 182 bytes | 2617 bytes |
+| Footprint, full MIDI track | about 3.7 KB of notes | **6185 bytes** of the 19509 free |
+| In the repository | built by `mkdoom.py` | `M27512_PM5139_V20_chords.bin` |
 
 The polyphonic one costs 272 bytes of code; the rest is 2048 bytes of
 chord table and 3697 bytes of notes. Two thirds of the free area is still

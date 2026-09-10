@@ -379,8 +379,13 @@ while they sound. Because the partials must be integer multiples of the
 table frequency, the intervals come out in just intonation, which for a
 sustained chord is the better tuning anyway.
 
+`M27512_PM5139_V20_chords.bin` is in the repository ready to burn — the
+riff, in chords, with the envelope. To build it yourself, or to use a
+MIDI file of your own instead of the built-in riff:
+
 ```
-python3 mkpoly.py --chord power --midi level1.mid --channel 1 \
+python3 mkpoly.py --chord crunch M27512_PM5139_V20.bin out.bin
+python3 mkpoly.py --chord crunch --midi yours.mid --channel 1 \
         M27512_PM5139_V20.bin out.bin
 ```
 
@@ -410,7 +415,7 @@ hook the same menu entry:
 | Voices | one | several at once |
 | Waveform | whatever is loaded | its own chord table |
 | Level | as the front panel left it | set explicitly, 11.6 Vpp measured |
-| ROM used | 182 bytes | 6017 of the 19509 free |
+| ROM used | 182 bytes | 2617 with the built-in riff, 6185 from a MIDI track |
 
 Two measurements shaped that design:
 

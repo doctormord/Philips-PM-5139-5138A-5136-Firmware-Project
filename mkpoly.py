@@ -529,7 +529,7 @@ def loader(a, setup, finish, table_label, tag=''):
     #                                     its RET returns to our LCALL
 
 
-def player(a, freq, notes_label, envel=False):
+def player(a, freq, notes_label, envel=False, attack=5, dac=0x7F):
     """The melody loop, as in mkdoom.py: three bytes of frequency, one of
     duration, terminated by a zero byte, then round again."""
     a.label('loop')
@@ -543,9 +543,10 @@ def player(a, freq, notes_label, envel=False):
     a.op('POP DPL'); a.op('POP DPH')
     if envel:
         a.op('MOV R3,#00h')             # restart the envelope on every note
+                                        # R2 keeps the level across the join
     a.label('hold')                     # one unit = 1009 us, measured
     if envel:
-        envelope_step(a, 'n')           # about 45 us of the 1009
+        envelope_step(a, 'n', attack, dac)   # about 45 us of the 1009
     a.op('MOV R6,#02h')
     a.label('h2'); a.op('MOV R7,#0FAh')
     a.label('h3'); a.op('DJNZ R7,h3')
@@ -557,7 +558,7 @@ def player(a, freq, notes_label, envel=False):
     a.op('SJMP loop')
 
 
-def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128):
+def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128, attack=8):
     """A plucked shape for the amplitude DAC.
 
     One byte per step, and a step is one unit of the wait loop, so about
@@ -567,27 +568,59 @@ def envelope_table(peak=0x7F, floor=0x06, tau=40.0, n=128):
     Without this every note is a flat tone and the whole thing sounds like
     an organ. The DAC is seven bits (section 36.8), so the values stay
     inside 00h..7Fh.
+
+    The first version jumped straight to `peak` on step 0. That clicked
+    audibly on the instrument, and rightly so: the previous note had
+    decayed to `floor`, so every note began with a twentyfold step in
+    amplitude. `attack` spreads that rise over a few steps — five of them
+    is about 5 ms, short enough to still sound plucked and long enough
+    that the edge disappears.
     """
     import math
     out = bytearray()
     for i in range(n):
-        v = peak * math.exp(-i / tau)
+        if i < attack:
+            # start exactly at `floor`, which is where the previous note
+            # left the DAC, so the first step is no step at all
+            v = floor + (peak - floor) * i / max(1, attack - 1)
+        else:
+            v = peak * math.exp(-(i - attack + 1) / tau)
         out.append(max(floor, min(peak, int(round(v)))))
     return bytes(out)
 
 
-def envelope_step(a, tag):
+def envelope_step(a, tag, attack=8, peak=0x7F):
     """Send one envelope value to STR9 and advance the index in R3.
 
     R3 is the step counter, clamped at 7Fh so a long note holds the tail.
-    DPTR belongs to the note table, so it is saved across the lookup, and
-    the value is stashed in R1 because R6 and R7 are the delay counters.
+    R2 carries the value last sent, because the attack ramps up **from
+    wherever the previous note left the DAC** rather than from a fixed
+    start. Restarting at a fixed floor left a step at every note boundary
+    — 14 down to 6 in the measured case — and that is audible. Ramping
+    from R2 removes the discontinuity entirely.
+
+    DPTR belongs to the note table, so it is saved across the lookup.
     """
+    inc = max(1, (peak - 6) // max(1, attack))
+    # attack phase: R3 < attack  ->  A = R2 + inc, clamped at the peak
+    a.op('MOV A,R3')
+    a.op('CJNE A,#%02Xh,ac%s' % (attack, tag))
+    a.label('ac%s' % tag)
+    a.op('JNC ad%s' % tag)              # R3 >= attack -> take the table
+    a.op('MOV A,R2')
+    a.op('ADD A,#%02Xh' % inc)
+    a.op('JNB ACC.7,as%s' % tag)        # above 7Fh -> clamp
+    a.op('MOV A,#%02Xh' % peak)
+    a.op('SJMP as%s' % tag)
+    a.label('ad%s' % tag)               # decay phase: straight from the table
     a.op('PUSH DPL'); a.op('PUSH DPH')
     a.op('MOV DPTR,#envtab')
     a.op('MOV A,R3')
     a.op('CLR C')                       # MOVC needs a clean carry-free A
     a.op('MOVC A,@A+DPTR')
+    a.op('POP DPH'); a.op('POP DPL')
+    a.label('as%s' % tag)
+    a.op('MOV R2,A')                    # remember what was sent
     # One byte is enough: measured, a single STR9 telegram changes the
     # level, and the first byte of a pair has no effect on it anyway
     # (section 36.8). So the previous value simply shifts on into the
@@ -595,6 +628,7 @@ def envelope_step(a, tag):
     a.op('MOV SBUF,A')
     a.op('CLR TI')
     a.label('ew1%s' % tag); a.op('JNB TI,ew1%s' % tag)
+    a.op('PUSH DPL'); a.op('PUSH DPH')
     a.op('MOV DPH,#89h')                # fire STR9
     a.op('MOV DPL,#00h')
     a.op('MOVX @DPTR,A')
@@ -772,6 +806,7 @@ def main(argv):
     dac = 0x7F                   # STR9 amplitude DAC; it wraps above 7Fh
     envel = True                 # pluck the notes with the STR9 DAC
     decay = 40.0                 # envelope time constant, in units of 1009 us
+    attack = 8                   # rise steps, so a note does not start with a jump
     relay = 0x1C                 # STR7 relay byte: bits 3+4 set = both
                                  # attenuators bypassed, measured 11.6 Vpp
     step_s = 30.0                # seconds per matrix step
@@ -791,6 +826,7 @@ def main(argv):
         elif argv[i] == '--relay': relay = int(argv[i+1], 0); i += 2
         elif argv[i] == '--no-envelope': envel = False; i += 1
         elif argv[i] == '--decay': decay = float(argv[i+1]); i += 2
+        elif argv[i] == '--attack': attack = int(argv[i+1]); i += 2
         elif argv[i] == '--ampsweep': mode = 'amp'; i += 1
         elif argv[i] == '--matrix': mode = 'matrix'; i += 1
         elif argv[i] == '--relays': mode = 'relays'; i += 1
@@ -906,8 +942,10 @@ def main(argv):
         a.op('MOV DPTR,#after')
         a.op('LCALL rep')
         set_level(a, dac)
+        if envel:
+            a.op('MOV R2,#06h')         # the level the first note ramps from
         a.op('MOV DPTR,#notes')
-        player(a, freq, 'notes', envel)
+        player(a, freq, 'notes', envel, attack, dac)
     # the loader, entered with the setup index in A
     if pattern == 'suite':
         for n, _, _ in SUITE:
@@ -953,9 +991,13 @@ def main(argv):
         after[-1] = (9, [level])
     a.label('before'); a.db(*telegram_table(before))
     a.label('after');  a.db(*telegram_table(after))
+    # With an envelope the static level is only the starting point of the
+    # first ramp, so it is set to the floor. Sending full scale here made
+    # the first note begin with a step down into the attack.
+    start = 0x06 if (mode == 'play' and envel) else dac
     a.label('lvl'); a.db(*telegram_table(
         ([(7, [relay, 0x64])] if relay is not None else [])
-        + [(9, [0x00]), (9, [dac])]))
+        + [(9, [0x00]), (9, [start])]))
     if mode == 'amp':
         for n, (_, _, tel) in enumerate(AMP_TRIALS):
             if tel:
@@ -977,7 +1019,7 @@ def main(argv):
     if mode == 'hold' and pattern == 'both':
         a.label('table2'); a.db(*mkchord.table(chord_name))
     if mode == 'play' and envel:
-        a.label('envtab'); a.db(*envelope_table(peak=dac, tau=decay))
+        a.label('envtab'); a.db(*envelope_table(peak=dac, tau=decay, attack=attack))
     a.label('notes'); a.db(*tune)
     code = a.finish()
 
@@ -990,9 +1032,10 @@ def main(argv):
     print('chord "%s" = harmonics %s, the melody is divided by %d'
           % (chord_name, ':'.join(str(x) for x in h), min(h)))
     if mode == 'play' and envel:
-        e = envelope_table(peak=dac, tau=decay)
-        print('envelope: %d steps of ~1.009 ms, %02Xh down to %02Xh, tau %.0f ms'
-              % (len(e), e[0], e[-1], decay * 1.009))
+        e = envelope_table(peak=dac, tau=decay, attack=attack)
+        print('envelope: %d steps of ~1.009 ms, attack %d (%.0f ms) to %02Xh,'
+              % (len(e), attack, attack * 1.009, max(e)))
+        print('          then decay to %02Xh, tau %.0f ms' % (e[-1], decay * 1.009))
     if mode == 'play':
         if dac > 0x7F:
             print('WARNING: the DAC wraps above 7Fh — %02Xh acts as %02Xh'

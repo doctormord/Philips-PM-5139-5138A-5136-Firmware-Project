@@ -53,6 +53,11 @@ CHORDS = {
     'dom7':   (4, 5, 6, 7),         # dominant seventh, harmonic (septimal) 7th
     'maj7':   (8, 10, 12, 15),      # major seventh
     'min7':   (10, 12, 15, 18),     # minor seventh
+    # Fuller voicings. Adding the octave of the fifth and a second octave
+    # costs nothing — same 1024 points, same load time — but fills the
+    # rather thin 2:3:4 out into something closer to a driven guitar.
+    'crunch': (2, 3, 4, 6, 8),      # power chord with its own octaves
+    'crunch5':(2, 3, 4, 6, 8, 12, 16),
 }
 
 

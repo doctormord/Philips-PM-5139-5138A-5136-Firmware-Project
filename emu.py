@@ -47,8 +47,9 @@ class CPU:
         if str_ == 6 and len(b) == 4:
             a['n'] = (b[1] << 8) | b[0]; a['e'] = b[2] >> 5; a['cmd'] = b[3]
             a['hz'] = a['n'] * 0.005 * 10 ** (3 - a['e'])
-        elif str_ == 9 and len(b) == 1:
-            a['dac'] = b[0] & 0x7F              # seven bits, wraps above 7Fh
+        elif str_ == 9 and len(b) >= 1:
+            # the byte sent last lands in D101, the upper DAC bits
+            a['dac'] = b[-1] & 0x7F             # seven bits, wraps above 7Fh
         elif str_ == 7 and len(b) == 2:
             a['relays'] = b[0]
             a['atten'] = {0: 40, 1: 20, 2: 20, 3: 0}[(b[0] >> 3) & 3]

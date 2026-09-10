@@ -20,6 +20,7 @@ This reservation covers, at least:
   M27512_PM5139_V13.bin              original firmware image
   M27512_PM5139_V15.bin              original firmware image
   M27512_PM5139_V20.bin              modified firmware, derived from V1.5
+  M27512_PM5139_V20_chords.bin       the same, with the polyphonic player
   patch_ok.bin                       modified firmware, derived from V1.3
   PM5139_V13_disasm.asm              disassembly, derived from the firmware
   PM5139_V15_disasm.asm              disassembly, derived from the firmware
@@ -39,7 +40,8 @@ bytes, is mechanically derived from them, or depicts their contents.
 
 Where our own work is mixed into such a file — the annotations in the
 annotated listings, the corrected waveform in M27512_PM5139_V20.bin, the
-computed curves in D310_image_V20.bin and D310_image_chords.bin — only
+computed curves in D310_image_V20.bin and D310_image_chords.bin, the
+chord table and player in M27512_PM5139_V20_chords.bin — only
 our contribution is offered under the MIT terms below. The surrounding
 original material is not.
 

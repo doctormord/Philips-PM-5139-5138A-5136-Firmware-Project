@@ -99,6 +99,10 @@ class Asm:
         if m:
             self.out.append(0xD5); self.db(self._direct(m.group(1)))
             self._target(m.group(2), 'rel'); return
+        m = re.fullmatch(r'(JC|JNC) (\S+)', t)
+        if m:
+            self.out.append(0x40 if m.group(1) == 'JC' else 0x50)
+            self._target(m.group(2), 'rel'); return
         m = re.fullmatch(r'JZ (\S+)', t)
         if m:
             self.out.append(0x60); self._target(m.group(1), 'rel'); return

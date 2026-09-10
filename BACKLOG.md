@@ -766,6 +766,60 @@ constant, which turns the AM6012 into a plain DAC, and write samples to
 STR9. True independent polyphony at any pitch with no latency at all, at
 the price of the whole CPU, seven bits and a hard bandwidth ceiling.
 
+### Amplitude modulation as a second chord mechanism — this one works
+
+FM is the obvious thing to try and it is the wrong tool. Its sidebands
+sit at fc ± n·fm with Bessel amplitudes, **arithmetically spaced and all
+the same distance apart**. That is a timbre, not a chord: the lines
+cannot be placed individually, only their spacing and distribution set.
+It is exactly why a DX7 is a sound generator rather than a chord machine.
+
+| β | J0 | J1 | J2 | J3 | J4 | lines carrying |
+|---|---|---|---|---|---|---|
+| 0.5 | +0.94 | +0.24 | +0.03 | | | 2 |
+| 1.0 | +0.77 | +0.44 | +0.11 | +0.02 | | 3 |
+| 2.0 | +0.22 | +0.58 | +0.35 | +0.13 | +0.03 | 4 |
+
+**Aliasing is not available either.** Below f_char the TWS plays all 1024
+points, so the effective sample rate is 1024 × the output frequency —
+102 kHz at 100 Hz out, a megahertz at 1 kHz. The table is oversampled
+1024-fold and nothing folds back into the audio band. Aliasing only
+starts above 20.48 kHz of output, where the TWS begins skipping points,
+which is far past where music happens.
+
+**AM, though, gives three real tones.** Output = carrier × (1 + m·cos 2π
+fm t) puts lines at **fc − fm, fc, fc + fm**, amplitudes 1 and m/2 each.
+Both frequencies are independently programmable: fc through STR6, fm
+through STR5, and the depth m through the AD7523 from RAM 19h.
+
+| Target | fc | fm | Result |
+|---|---|---|---|
+| power chord 2:3:4 | 3f | 1f | 2f, 3f, 4f |
+| major 4:5:6 | 5f | 1f | 4f, 5f, 6f |
+| minor 10:12:15 | — | — | unequal spacing, impossible |
+
+The constraint is that arithmetic spacing: any chord whose three notes are
+**equally spaced** works, and one that is not does not. Power chords and
+major triads yes, minor no.
+
+Cost, measured: a complete STR5 telegram is six bytes — frequency word,
+depth, multiplexer — and takes **207 µs**. That is easily inside a note,
+so the modulation oscillator can be retuned per note like the main one.
+The oscillator's documented range is 10 Hz to 100 kHz.
+
+This composes with the wavetable rather than replacing it: a table
+holding 2:3:4 with AM on top puts sidebands around every partial, up to
+nine lines. Dense, but it is material.
+
+**And the modulation oscillator has its own output socket.** It is a
+complete second oscillator — its own TWS (D130), its own SinePROM (D131,
+socketed, and dumped in section 31), its own DAC (N133) — and the MOD
+output on the rear panel carries it outside. Mixed externally that is a
+genuinely independent second voice at any pitch, with none of the spacing
+constraint AM has. Nobody has tried it, and unlike most ideas in this
+file it needs no firmware work at all to test: set a modulation frequency
+from the front panel and put a scope on the rear socket.
+
 ### Time-multiplexing the wavetable — the idea that does not work
 
 It suggests itself, so here is the arithmetic before someone spends a
